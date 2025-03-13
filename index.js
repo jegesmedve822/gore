@@ -14,6 +14,8 @@ import dotenv from "dotenv";
 const app = express();
 const port = 3001;
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.set("view engine", "ejs");
 const saltRounds = 10;
 dotenv.config();
 
@@ -142,6 +144,8 @@ passport.deserializeUser((user, cb) => {
     cb(null, user);
 });
 
+let lastInsertedId = null;
+
 //túrázó beszúrása az adatbázisba a userformról
 app.post("/registerhiker", async (req, res)=> {
     const name = req.body.name;
@@ -153,18 +157,40 @@ app.post("/registerhiker", async (req, res)=> {
         const checkResult = await db.query("SELECT * FROM hikers WHERE barcode = $1",
             [barcode]);
         if(checkResult.rows.length > 0) {
-            return res.send("A vonalkód már létezik az adatbázisban, adj meg másikat!");
+            return res.json({ message: "A vonalkód már létezik az adatbázisban, adj meg másikat!", status: "error" });
         } else {
-            const result = await db.query("INSERT INTO hikers (name, distance, barcode) VALUES($1, $2, $3) RETURNING *",
+            const result = await db.query("INSERT INTO hikers (name, distance, barcode) VALUES($1, $2, $3) RETURNING id",
                 [name, distance, barcode]
             );
-            res.send("A rekordok beillesztése kerültek az adatbázisba!");
+
+            lastInsertedId = result.rows[0].id;
+            res.json({ message: "A rekord sikeresen hozzáadva az adatbázishoz!", status: "success" });
         }
     } catch(err) {
         console.log(err);
-        res.status(500).send("Hiba történt az adatbázis művelet során!");
+        res.json({ message: "Hiba történt az adatbázis művelet során!", status: "error" });
     }
 });
+
+//utolsó rekord törlése az adatbázisból
+app.post("/undo", async (req, res) => {
+    try {
+        if(!lastInsertedId) {
+            return res.json({ message: "Nincs törölhető rekord!", status: "error", canUndo: false });
+        }
+
+        await db.query("DELETE FROM hikers WHERE id = $1", [lastInsertedId]);
+        lastInsertedId = null;
+
+        res.json({ message: "Az utolsó rekord sikeresen visszavonva!", status: "success", canUndo: false });
+
+    } catch (err) {
+        console.log(err);
+        res.json({ message: "Hiba történt a visszavonás során!", status: "error", canUndo: false });
+    }
+});
+
+//--------------------------------------innentől jönnek a második fül funkciói------------------------------
 
 
 

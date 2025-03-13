@@ -9,28 +9,38 @@
 <body>
     <div class="wrapper">
         <h1>Ez a regisztrációs oldal</h1>
-        <form action="/registerhiker" method="POST">
+
+        <!-- Üzenet megjelenítése -->
+        <p id="message"></p>
+
+        <form id="registerForm">
             <label for="name">Név:</label>
             <input type="text" id="name" name="name" required>
             <br>
-        
+
             <label for="distance">Táv:</label>
             <select id="distance" name="distance" required>
-                <option value="10">10 km</option>
-                <option value="25">25 km</option>
+                <option value="10">12 km</option>
+                <option value="24">24 km</option>
+                <option value="34">34 km</option>
             </select>
             <br>
-        
+
             <label for="barcode">Vonalkód:</label>
             <input type="text" id="barcode" name="barcode" pattern="\d{8}" title="Csak 8 számjegyű EAN-8 vonalkód fogadható el!" required>
             <br>
-        
+
             <button type="submit">Regisztráció</button>
         </form>
+
         <br>
-        <form action="/undo" method="POST">
+
+        <form id="undoForm">
             <button type="submit">Utolsó rekord visszavonása</button>
         </form>
     </div>
+
+    <script src="js/register.js"></script>
+    <script src="js/undo.js"></script>
 </body>
 </html>

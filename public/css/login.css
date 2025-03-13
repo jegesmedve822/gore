@@ -19,7 +19,13 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Formázás az űrlaphoz */
+/* Üzenetek formázása */
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+/* Formázás a bejelentkezési űrlaphoz */
 form {
     display: flex;
     flex-direction: column;
@@ -49,16 +55,7 @@ input:focus {
     border-color: #888;
 }
 
-/* Gombok konténer */
-.buttons {
-    display: flex;
-    flex-direction: row;
-    gap: 15px;
-    margin-top: 20px;
-    justify-content: center;
-}
-
-/* Gombok stílusa */
+/* Gomb stílusa */
 button {
     padding: 12px 20px;
     font-size: 16px;
@@ -81,15 +78,3 @@ button:active {
     background-color: #d6d6d6;
     box-shadow: none;
 }
-
-.success {
-    color: green;
-    font-weight: bold;
-}
-
-.error {
-    color: red;
-    font-weight: bold;
-}
-
-
