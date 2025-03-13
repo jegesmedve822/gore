@@ -1,0 +1,84 @@
+body {
+    padding: 0;
+    margin: 0;
+    background-color: blanchedalmond;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Formázás az űrlaphoz */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: rgb(241, 220, 174);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+}
+
+label {
+    font-weight: bold;
+    color: #444;
+}
+
+input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    transition: border 0.2s ease-in-out;
+}
+
+input:focus {
+    border-color: #888;
+}
+
+/* Gombok konténer */
+.buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+/* Gombok stílusa */
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #333;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: #e0e0e0;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    background-color: #d6d6d6;
+    box-shadow: none;
+}
+
