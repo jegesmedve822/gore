@@ -191,7 +191,76 @@ app.post("/undo", async (req, res) => {
 });
 
 //--------------------------------------innentől jönnek a második fül funkciói------------------------------
+app.post("/recordtimestamp", async (req, res) => {
+    const barcode = req.body.barcode;
 
+    try{
+        //megnézzük, hogy a vonalkód létezik-e az adatbázisban
+        const checkResult = await db.query("SELECT * FROM hikers WHERE barcode = $1", 
+            [barcode]);
+        if(checkResult.rows.length === 0) {
+            return res.json({ message: "A beolvasott vonalkód NINCS regisztrálva az adatbázisban!", status: "error" });
+        }
+
+        //Megnézzük, hogy a departure date létezik-e az adatbázisban
+        const departureValue = await db.query("SELECT departure FROM hikers WHERE barcode = $1",
+            [barcode]);
+        
+        //ha nem, akkor beállítjuk az indulási időnek a currentdatet
+        if(departureValue.rows.length > 0 && departureValue.rows[0].departure === null) {
+            const currentDate = new Date();
+            await db.query("UPDATE hikers SET departure = $1 WHERE barcode = $2",
+                [currentDate, barcode]);
+            return res.json({ message: "Az INDULÁSI dátum sikeresen rögzítve az adatbázisban!", status: "success" });
+        }
+        //Ha a dátum benne van a departure mezőben, akkor megnézzük, hogy eltelt-e a rögzítés óta 20 perc. Ha nem, nem szúrjuk be az új rekordot, ha igen, beszúrjuk az arrival dátumnak.
+        if(departureValue.rows.length > 0 && departureValue.rows[0].departure !== null) {
+            //megnézzük, hogy az arrival dátum töltve van-e
+            if(checkResult.rows[0].arrival === null) {
+                const departureDate = departureValue.rows[0].departure;
+                const currentDate = new Date();
+
+                //a departure date és a current date közti különbség percekben
+                const dateDiff = (currentDate - new Date(departureDate))/(1000*60);
+
+                //ha x perc nem telt el, ne illessze be a rekordot
+                if(dateDiff < 1)  {
+                    return res.json({ message: "Nem telt el x perc az elindulás óta, ezért az érkezési időpont NEM került beillesztésre!", status: "error" });
+                } else {
+                    //Arrival dátum beillesztése az adatbázisba
+                    await db.query("UPDATE hikers SET arrival = $1 WHERE barcode = $2",
+                        [currentDate, barcode]);
+                    
+                    //a versenyző nevének lekérdezése teljsítési idő kiszámítása és a változó megjelenítése az oldalon.
+                    const hikerName = checkResult.rows[0].name;
+
+                    //idő kiszámítása és megfelelő formátumba hozása
+                    const diffMs = currentDate - new Date(departureDate);
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                    const completionTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+                    
+                    return res.json({ 
+                        message: "Az ÉRKEZÉSI idő sikeresen rögzítve az adatbázisba!",
+                        status: "success",
+                        completion: completionTime, 
+                        hikerName: hikerName
+                    });
+                }
+            } else {
+                const hikerName = checkResult.rows[0].name;
+                return res.json({ 
+                    message: "A versenyző érkezése már korábban regisztrálásra került!",
+                    status: "error",
+                    hikerName: hikerName
+                });
+            }
+        }
+    } catch(err) {
+        res.json({ message: "Hiba történt az adatbázisművelet során!", status: "error" });
+    }
+});
 
 
 // Szerver futtatása

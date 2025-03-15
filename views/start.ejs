@@ -4,8 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indítás</title>
+    <link rel="stylesheet" href="css/start.css">
 </head>
 <body>
-    <h1>Ez a versenyző indítő oldal</h1>
+    <div class="wrapper">
+        <h1>Versenyző indító és fogadó oldal</h1>
+
+        <p id="s-message"></p>
+        <p id="hiker-name"></p>
+        <p id="completion-result"></p>
+
+            <form id="starterForm">
+                <label for="barcode">Vonalkód:</label>
+                <input type="text" id="barcode" name="barcode" pattern="\d{8}" title="Csak 8 számjegyű EAN-8 vonalkód fogadható el!" required autofocus>
+            <br>
+                <button type="submit">Indítás/Fogadás</button>
+            <br>
+            </form>
+
+            <form id="s-undoForm">
+                <button type="submit">Utolsó rekord visszavonása</button>
+            </form>
+    </div>
+<script src="js/start.js"></script>
 </body>
 </html>

@@ -92,4 +92,15 @@ button:active {
     font-weight: bold;
 }
 
+#hiker-name {
+    color:#333;
+    font-weight: bold;
+    font-size: 40px;
+}
+
+#completion-result {
+    color: #333;
+    font-size: 35px;
+}
+
 
