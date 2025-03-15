@@ -282,8 +282,6 @@ app.post("/update", async (req, res) => {
         const { id, name, barcode, departure, arrival } = req.body;
 
         try {
-            console.log("Debug:", { id, name, barcode, departure, arrival });
-
             const result = await db.query("SELECT departure, arrival FROM hikers WHERE id = $1", [id]);
             const existingDeparture = result.rows[0].departure;
             const existingArrival = result.rows[0].arrival;

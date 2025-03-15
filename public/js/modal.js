@@ -3,6 +3,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("editModal");
     const closeButton = document.querySelector(".close");
     const editForm = document.getElementById("editForm");
+    const messageElement = document.getElementById("message");
+
+    function showMessage(message, status) {
+        messageElement.textContent = message;
+        messageElement.className = status;
+
+        setTimeout(() => {
+            messageElement.textContent="";
+            messageElement.className="";
+        }, 4000);
+    }
 
     //dinamikus eseménykezelő
     document.getElementById("hikersTable").addEventListener("click", function (event) {
@@ -17,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     modifyButton.addEventListener("click", function () {
         let selectedRow = document.querySelector("#hikersTable tbody tr.selected");
         if(!selectedRow) {
-            alert("Előbb válassz ki egy versenyzőt a táblázatból!");
+            showMessage("Először válaszd ki a módosítani kívánt versenyzőt!", "error");
             return;
         }
 
@@ -26,8 +37,21 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("edit-name").value = selectedRow.cells[1].textContent;
         document.getElementById("edit-barcode").value = selectedRow.cells[2].textContent;
 
-        let departure = selectedRow.cells[3].textContent !== "—" ? new Date(selectedRow.cells[3].textContent).toISOString().slice(0, 16) : "";
-        let arrival = selectedRow.cells[4].textContent !== "—" ? new Date(selectedRow.cells[4].textContent).toISOString().slice(0, 16) : "";
+        //innen jön a bug fixálás
+        function parseDate(dateString) {
+            if (!dateString || dateString === "—") return ""; // Ha üres, ne írjunk semmit a mezőbe
+            let parts = dateString.match(/(\d{4})\.\s*(\d{2})\.\s*(\d{2})\.\s*(\d{1,2}):(\d{2})/);
+            if (!parts) return "";
+            let [_, year, month, day, hour, minute] = parts;
+            return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute}`;
+        }
+        //////////////////////////////6
+
+        /*let departure = selectedRow.cells[3].textContent !== "—" ? new Date(selectedRow.cells[3].textContent).toISOString().slice(0, 16) : "";
+        let arrival = selectedRow.cells[4].textContent !== "—" ? new Date(selectedRow.cells[4].textContent).toISOString().slice(0, 16) : "";*/
+
+        let departure = parseDate(selectedRow.cells[3].textContent);
+        let arrival = parseDate(selectedRow.cells[4].textContent);
 
         document.getElementById("edit-departure").value = departure;
         document.getElementById("original-departure").value = departure;
@@ -68,8 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const data = await response.json();
-
-        alert(data.message);
+        showMessage(data.message, data.status);
 
         if(data.status === "success") {
             modal.style.display ="none"

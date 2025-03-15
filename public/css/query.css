@@ -104,6 +104,7 @@ button:hover {
     width: 400px;
     margin: 15% auto;
     text-align: center;
+    position: relative;
 }
 
 /* Bezáró gomb */
@@ -114,8 +115,20 @@ button:hover {
     cursor: pointer;
 }
 
+.close:hover {
+    color:red;
+}
+
 #hikersTable tbody tr.selected {
     background-color: #ffcc80; /* Világos narancs háttér */
     color: black; /* Szöveg színe marad fekete */
     font-weight: bold; /* Félkövér szöveg */
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
 }
