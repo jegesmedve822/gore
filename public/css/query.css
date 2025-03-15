@@ -1,0 +1,121 @@
+/* Alap beállítások */
+body {
+    font-family: Arial, sans-serif;
+    background-color: blanchedalmond;
+    margin: 0;
+    padding: 0;
+}
+
+/* Központi wrapper */
+.wrapper {
+    max-width: 900px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+/* Fejléc */
+h1 {
+    color: #333;
+}
+
+.head {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Keresőmező */
+#searchInput {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Táblázat alap stílus */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+}
+
+/* Táblázat fejléc */
+th {
+    background-color: #f4c27c;
+    color: black;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+}
+
+/* Táblázat cellák */
+td {
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+
+/* Interaktív táblázat keresés és szerkesztés */
+input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+/* Gombok */
+button {
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    background-color: #ff9800;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    width: 200px;
+}
+
+button:hover {
+    background-color: #e68900;
+}
+
+/* A modal alapértelmezetten el van rejtve */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal tartalom */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    margin: 15% auto;
+    text-align: center;
+}
+
+/* Bezáró gomb */
+.close {
+    position: absolute;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+#hikersTable tbody tr.selected {
+    background-color: #ffcc80; /* Világos narancs háttér */
+    color: black; /* Szöveg színe marad fekete */
+    font-weight: bold; /* Félkövér szöveg */
+}

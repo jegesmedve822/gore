@@ -1,11 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lekérdezés</title>
+    <title>Adatkezelés</title>
+    <link rel="stylesheet" href="css/query.css">
 </head>
 <body>
-    <h1>Ez a lekérdezés/módosítás oldal</h1>
+    <div class="wrapper">
+        <div class="head">
+            <h1>Versenyzők megjelenítése</h1>
+            <input type="text" id="searchInput" placeholder="Keresés...">
+            <button id="modify-data" type="submit">Adatok módosítása</button>
+        </div>
+
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Adatok módosítása</h2>
+                <form id="editForm">
+                    <input type="hidden" id="edit-id">
+                    <label for="edit-name">Név:</label>
+                    <input type="text" id="edit-name" required>
+
+                    <label for="edit-barcode">Vonalkód:</label>
+                    <input type="text" id="edit-barcode" required>
+
+                    <label for="edit-departure">Indulás:</label>
+                    <input type="datetime-local" id="edit-departure">
+                    <input type="hidden" id="original-departure">
+
+                    <label for="edit-arrival">Érkezés:</label>
+                    <input type="datetime-local" id="edit-arrival">
+                    <input type="hidden" id="original-arrival">
+
+                    <button type="submit">Mentés</button>
+                </form>
+            </div>
+        </div>
+
+        <table id="hikersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Név</th>
+                    <th>Vonalkód</th>
+                    <th>Indulás</th>
+                    <th>Érkezés</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Az adatok AJAX-szal töltődnek be -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="js/query.js"></script>
+    <script src="js/modal.js"></script>
 </body>
 </html>

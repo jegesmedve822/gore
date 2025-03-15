@@ -262,6 +262,48 @@ app.post("/recordtimestamp", async (req, res) => {
     }
 });
 
+//--------------------innentől a lekérdezési/módosítási panel fog következni-------------------------------------
+app.get("/hikers", async (req, res) => {
+    if(req.isAuthenticated()) {
+        try {
+            const result = await db.query("SELECT * FROM hikers ORDER BY id ASC");
+            res.json(result.rows);
+        } catch (err) {
+            res.status(500).json({ message: "Hiba az adatok betöltésekot.", status: "error" })
+        };
+    } else {
+        res.redirect("/");
+    }
+});
+
+//a módosítás funkciója
+app.post("/update", async (req, res) => {
+    if(req.isAuthenticated()) {
+        const { id, name, barcode, departure, arrival } = req.body;
+
+        try {
+            console.log("Debug:", { id, name, barcode, departure, arrival });
+
+            const result = await db.query("SELECT departure, arrival FROM hikers WHERE id = $1", [id]);
+            const existingDeparture = result.rows[0].departure;
+            const existingArrival = result.rows[0].arrival;
+
+            const safeDeparture = departure && departure !== "" ? departure : existingDeparture;
+            const safeArrival = arrival && arrival !== "" ? arrival : existingArrival;
+
+
+            await db.query(
+                "UPDATE hikers SET name = $1, barcode = $2, departure = $3, arrival = $4 WHERE id = $5",
+                [name, barcode, departure || null, arrival ||null, id]
+            );
+            res.json({ message: "Sikeresen frissítve!", status: "success" });
+        } catch(err) {
+            res.status(500).json({ message: "Hiba történt az adatmódosítás során.", status: "error" });
+        }
+    } else {
+        res.redirect("/");
+    }
+});
 
 // Szerver futtatása
 app.listen(port, () => {
