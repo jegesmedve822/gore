@@ -8,6 +8,7 @@ import passport from "passport";
 import { Strategy } from "passport-local";
 import dotenv from "dotenv";
 import { isAuthenticated, isSysAdmin, isUser, isViewer } from "./middlewares/authMiddleware.js";
+import os from "os";
 
 
 
@@ -386,6 +387,56 @@ app.post("/create-sysuser", isSysAdmin, async (req, res) => {
         }
     } else {
         res.redirect("/");
+    }
+});
+
+//szerver leterheltsége a frontenden való mutatása
+app.get("/server-status", isSysAdmin, (req, res) => {
+    const cpuLoad = os.loadavg()[0];
+    const totalMemory = os.totalmem();
+    const freeMemory = os.freemem();
+    const usedMemory = totalMemory - freeMemory;
+    const memoryUsage = (usedMemory / totalMemory) * 100;
+    const uptime = os.uptime();
+
+    res.json({
+        cpuLoad: cpuLoad.toFixed(2),
+        memoryUsage: memoryUsage.toFixed(2),
+        freeMemory: (freeMemory / 1024 / 1024).toFixed(2), // MB
+        totalMemory: (totalMemory / 1024 / 1024).toFixed(2), // MB
+        uptime: Math.floor(uptime / 60) + " perc"
+    });
+
+});
+
+async function saveServerStats() {
+    try {
+        const cpuLoad = os.loadavg()[0]; 
+        const totalMemory = os.totalmem();
+        const freeMemory = os.freemem();
+        const usedMemory = totalMemory - freeMemory;
+        const memoryUsage = (usedMemory / totalMemory) * 100;
+        const uptime = os.uptime();
+
+        await db.query(
+            "INSERT INTO server_stats (cpu_load, memory_usage, free_memory, total_memory, uptime) VALUES ($1, $2, $3, $4, $5)",
+            [cpuLoad.toFixed(2), memoryUsage.toFixed(2), (freeMemory / 1024 / 1024).toFixed(2), (totalMemory / 1024 / 1024).toFixed(2), Math.floor(uptime)]
+        );
+
+    } catch(err) {
+        console.error("Hiba a szerver állapot mentése közben:", err);
+    }
+}
+
+setInterval(saveServerStats, 30000);
+
+//szerver historynak a megjelenítése:
+app.get("/server-history", isSysAdmin, async(req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM server_stats ORDER BY timestamp DESC LIMIT 60");
+        res.json(result.rows);
+    } catch(err) {
+        res.status(500).json({ message:"Hiba a szerver állapot lekérése közben.", status: "error", });
     }
 });
 

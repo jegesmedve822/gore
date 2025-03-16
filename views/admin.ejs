@@ -68,8 +68,28 @@
 
         <!-- Középső panel -->
         <div class="center-panel">
-            <h2>Későbbi funkciók</h2>
-            <p>Itt lesznek a további adminisztrációs lehetőségek.</p>
+            <h2>Szerver Monitor</h2>
+            <div id="server-status">
+                <p>CPU terhelés: <span id="cpuLoad">—</span></p>
+                <p>Memóriahasználat: <span id="memoryUsage">—</span>%</p>
+                <p>Szabad memória: <span id="freeMemory">—</span> MB</p>
+                <p>Teljes memória: <span id="totalMemory">—</span> MB</p>
+                <p>Uptime: <span id="uptime">—</span></p>
+            </div>
+            <div class="server-history">
+                <h2>Szerver Terhelés Történet</h2>
+                <table id="serverHistoryTable">
+                    <thead>
+                        <tr>
+                            <th>Időpont</th>
+                            <th>CPU Terhelés</th>
+                            <th>Memóriahasználat</th>
+                            <th>Uptime</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Jobb oldali panel -->
@@ -81,5 +101,7 @@
 
     <script src="js/admin_create_user.js"></script>
     <script src = "js/authentication.js"></script>
+    <script src = "js/adminMonitor.js"></script>
+    <script src = "js/serverHistory.js"></script>
 </body>
 </html>
