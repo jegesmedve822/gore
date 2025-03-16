@@ -29,8 +29,10 @@ function renderTable(hikers) {
             <td>${hiker.id}</td>
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
+            <td>${hiker.distance}</td>
             <td>${hiker.departure ? new Date(hiker.departure).toLocaleString("hu-HU") : "—"}</td>
             <td>${hiker.arrival ? new Date(hiker.arrival).toLocaleString("hu-HU") : "—"}</td>
+            <td>${hiker.completionTime}</td>
         `;
 
         tbody.appendChild(row);

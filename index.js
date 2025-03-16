@@ -7,6 +7,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
 import dotenv from "dotenv";
+import { isAuthenticated, isSysAdmin, isUser, isViewer } from "./middlewares/authMiddleware.js";
 
 
 
@@ -64,39 +65,55 @@ app.get("/main", (req, res) => {
 });
 
 //Admin oldal megjelenítése
-app.get("/admin", (req, res) => {
+/*app.get("/admin", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("admin.ejs");
     } else {
         res.redirect("/");
     }
+});*/
+
+app.get("/admin", isSysAdmin, (req, res) => {
+    res.render("admin.ejs", { user: req.user });
 });
 
 //Regisztrációs oldal megjelenítése
-app.get("/regisztracio", (req, res) => {
+/*app.get("/regisztracio", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("register.ejs");
     } else {
         res.redirect("/");
     }
+});*/
+
+app.get("/regisztracio", isUser, (req, res) => {
+    res.render("register.ejs", { user: req.user });
 });
 
 //Indító oldal megjelenítése
-app.get("/inditas", (req, res) => {
+/*app.get("/inditas", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("start.ejs");
     } else {
         res.redirect("/");
     }
-});
+});*/
+
+app.get("/inditas", isUser, (req, res) => {
+    res.render("start.ejs", { user: req.body.user });
+})
 
 //Lekérdezős, módosítós oldal megjelenítése
-app.get("/modositas", (req, res) => {
+/*app.get("/modositas", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("query.ejs");
     } else {
         res.redirect("/");
     }
+});*/
+
+app.get("/modositas", isViewer, (req, res) => {
+    res.render("query.ejs", { user: req.body.user });
 });
 
 //Bejelentkezés az oldalra
@@ -147,7 +164,7 @@ passport.deserializeUser((user, cb) => {
 let lastInsertedId = null;
 
 //túrázó beszúrása az adatbázisba a userformról
-app.post("/registerhiker", async (req, res)=> {
+app.post("/registerhiker", isUser, async (req, res)=> {
     const name = req.body.name;
     const distance = req.body.distance;
     const barcode = req.body.barcode;
@@ -173,7 +190,7 @@ app.post("/registerhiker", async (req, res)=> {
 });
 
 //utolsó rekord törlése az adatbázisból
-app.post("/undo", async (req, res) => {
+app.post("/undo", isUser, async (req, res) => {
     try {
         if(!lastInsertedId) {
             return res.json({ message: "Nincs törölhető rekord!", status: "error", canUndo: false });
@@ -191,7 +208,7 @@ app.post("/undo", async (req, res) => {
 });
 
 //--------------------------------------innentől jönnek a második fül funkciói------------------------------
-app.post("/recordtimestamp", async (req, res) => {
+app.post("/recordtimestamp", isUser, async (req, res) => {
     const barcode = req.body.barcode;
 
     try{
@@ -263,13 +280,31 @@ app.post("/recordtimestamp", async (req, res) => {
 });
 
 //--------------------innentől a lekérdezési/módosítási panel fog következni-------------------------------------
-app.get("/hikers", async (req, res) => {
+app.get("/hikers", isViewer, async (req, res) => {
     if(req.isAuthenticated()) {
         try {
-            const result = await db.query("SELECT * FROM hikers ORDER BY id ASC");
-            res.json(result.rows);
+            const result = await db.query("SELECT * FROM hikers ORDER BY distance, id ASC");
+
+            //új tömb, ami megadja a teljesítési időt, ha az létezik
+            const hikersWithCompletionTime = result.rows.map(hiker => {
+                let completionTime = "Még nem indult el";
+
+                if(hiker.departure && !hiker.arrival) {
+                    completionTime = "Még nem érkezett be";
+                } else if (hiker.departure && hiker.arrival) {
+                    const diffMs = new Date(hiker.arrival) - new Date(hiker.departure);
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                    completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
+                }
+
+                return { ...hiker, completionTime };
+            });
+
+            res.json(hikersWithCompletionTime);
         } catch (err) {
-            res.status(500).json({ message: "Hiba az adatok betöltésekot.", status: "error" })
+            res.status(500).json({ message: "Hiba az adatok betöltésekot.", status: "error" });
         };
     } else {
         res.redirect("/");
@@ -277,7 +312,7 @@ app.get("/hikers", async (req, res) => {
 });
 
 //a módosítás funkciója
-app.post("/update", async (req, res) => {
+app.post("/update", isUser, async (req, res) => {
     if(req.isAuthenticated()) {
         const { id, name, barcode, departure, arrival } = req.body;
 
@@ -297,6 +332,57 @@ app.post("/update", async (req, res) => {
             res.json({ message: "Sikeresen frissítve!", status: "success" });
         } catch(err) {
             res.status(500).json({ message: "Hiba történt az adatmódosítás során.", status: "error" });
+        }
+    } else {
+        res.redirect("/");
+    }
+});
+
+//--------------------------------------------------admin panel jön-----------------------------------------------------------
+app.post("/create-sysuser", isSysAdmin, async (req, res) => {
+    if(req.isAuthenticated()) {
+        const username = req.body.username;
+
+        try {
+            if(req.body.action === "create") {
+                const checkUsername = await db.query("SELECT user_name FROM sys_users WHERE user_name = $1", [username]);
+
+                if(checkUsername.rows.length > 0) {
+                    return res.json({ message: "Ez a felhasználónév már létezik az adatbázisban", status: "error" });
+                } else {
+                    const email = req.body.email;
+                    const role = req.body.role;
+                    const password = req.body.password;
+                    const password_hash = await bcrypt.hash(password, saltRounds);
+
+                    await db.query("INSERT INTO sys_users (user_name, user_email, password, role) VALUES($1, $2, $3, $4)", [username, email, password_hash, role]);
+                    return res.json({ message: "A felhasználó sikeresen létrehozva!", status: "success" });
+                }
+            } if(req.body.action==="delete") {
+                const checkUsername = await db.query("SELECT user_name FROM sys_users WHERE user_name = $1", [username]);
+
+                if(checkUsername.rows.length === 0) {
+                    return res.json({ message: "A beírt felhasználónév nem található az adatbázisban!", status: "error" });
+
+                } else {
+                    await db.query("DELETE FROM sys_users WHERE user_name = $1", [username]);
+                    return res.json({ message: "A felhasználó sikeresen törölve az adatbázisból", status: "success" });
+                }
+
+            } if(req.body.action==="update") {
+                const checkUsername = await db.query("SELECT user_name FROM sys_users WHERE user_name = $1", [username]);
+
+                if(checkUsername.rows.length === 0) {
+                    return res.json({ message: "A beírt felhasználónév nem található az adatbázisban!", status: "error" });
+
+                } else {
+                    const role = req.body.role;
+                    await db.query("UPDATE sys_users SET role = $1 WHERE user_name = $2", [role, username]);
+                    return res.json({ message: "A felhasználó szerepköre sikeresen módosult.", status:"success" });
+                }
+            }
+        } catch(err) {
+            res.status(500).json({ message: "Hiba történt az adatbázisművelet során!", status: "error" });
         }
     } else {
         res.redirect("/");

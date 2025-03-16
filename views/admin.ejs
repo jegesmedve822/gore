@@ -1,11 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin</title>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-    <h1>Ez az admin oldal</h1>  
+    <div class="admin-header">Admin Panel</div>
+
+    <div class="admin-container">
+        <!-- Bal oldali panel (Felhasználó kezelése) -->
+        <div class="left-panel">
+            <h2>Felhasználó kezelése</h2>
+            
+            <label for="action">Válassz műveletet:</label>
+            <select id="action">
+                <option value="">-- Válassz --</option>
+                <option value="create">Felhasználó létrehozása</option>
+                <option value="delete">Felhasználó törlése</option>
+                <option value="update">Szerepkör módosítása</option>
+            </select>
+
+            <form id="adminForm" style="display: none;">
+                <!-- CREATE - Felhasználó létrehozása -->
+                <div id="createFields" class="form-section" style="display: none;">
+                    <label for="username">Felhasználónév:</label>
+                    <input type="text" id="username">
+                    
+                    <label for="email">Email cím:</label>
+                    <input type="email" id="email">
+                    
+                    <label for="password">Jelszó:</label>
+                    <input type="password" id="password">
+                    
+                    <label for="role">Szerepkör:</label>
+                    <select id="role">
+                        <option value="user">User</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+
+                <!-- DELETE - Felhasználó törlése -->
+                <div id="deleteFields" class="form-section" style="display: none;">
+                    <label for="deleteUsername">Törlendő felhasználónév:</label>
+                    <input type="text" id="deleteUsername">
+                </div>
+
+                <!-- UPDATE - Szerepkör módosítása -->
+                <div id="updateFields" class="form-section" style="display: none;">
+                    <label for="updateUsername">Felhasználónév:</label>
+                    <input type="text" id="updateUsername">
+
+                    <label for="updateRole">Új szerepkör:</label>
+                    <select id="updateRole">
+                        <option value="user">User</option>
+                        <option value="viewer">Viewer</option>
+                        <option value="sysadmin">Sysadmin</option>
+                    </select>
+                </div>
+
+                <button type="submit">Művelet végrehajtása</button>
+            </form>
+
+            <p id="message"></p>
+        </div>
+
+        <!-- Középső panel -->
+        <div class="center-panel">
+            <h2>Későbbi funkciók</h2>
+            <p>Itt lesznek a további adminisztrációs lehetőségek.</p>
+        </div>
+
+        <!-- Jobb oldali panel -->
+        <div class="right-panel">
+            <h2>Későbbi funkciók</h2>
+            <p>Más adminisztrációs funkciók itt jelennek meg.</p>
+        </div>
+    </div>
+
+    <script src="js/admin_create_user.js"></script>
+    <script src = "js/authentication.js"></script>
 </body>
 </html>

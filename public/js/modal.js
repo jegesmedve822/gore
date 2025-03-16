@@ -84,19 +84,28 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!arrival) {
             arrival = document.getElementById("original-arrival").value || null;
         }
+        try {
+            const response = await fetch("/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, name, barcode, departure, arrival })
+            });
 
-        const response = await fetch("/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, name, barcode, departure, arrival })
-        });
+            if(response.status === 403) {
+                showMessage("Nincs jogosultságod az adatmódosításhoz!", "error");
+                modal.style.display = "none";
+                return;
+            }
 
-        const data = await response.json();
-        showMessage(data.message, data.status);
+            const data = await response.json();
+            showMessage(data.message, data.status);
 
-        if(data.status === "success") {
-            modal.style.display ="none"
-            loadHikers();
+            if(data.status === "success") {
+                modal.style.display ="none"
+                loadHikers();
+            }
+        } catch(error) {
+            showMessage("Ismeretlen hiba történt.", "error");
         }
     });
 
