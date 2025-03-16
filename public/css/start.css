@@ -103,4 +103,27 @@ button:active {
     font-size: 35px;
 }
 
+.menu-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.menu-button button {
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.menu-button button:hover {
+    background-color: #e0e0e0;
+}
+
+
 

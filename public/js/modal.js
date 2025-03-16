@@ -45,10 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let [_, year, month, day, hour, minute] = parts;
             return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute}`;
         }
-        //////////////////////////////6
 
-        /*let departure = selectedRow.cells[3].textContent !== "—" ? new Date(selectedRow.cells[3].textContent).toISOString().slice(0, 16) : "";
-        let arrival = selectedRow.cells[4].textContent !== "—" ? new Date(selectedRow.cells[4].textContent).toISOString().slice(0, 16) : "";*/
 
         let departure = parseDate(selectedRow.cells[3].textContent);
         let arrival = parseDate(selectedRow.cells[4].textContent);

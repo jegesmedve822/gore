@@ -3,6 +3,17 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("searchInput").addEventListener("keyup", filterTable);
 });
 
+const messageElement = document.getElementById("message");
+function showMessage(message, status) {
+    messageElement.textContent = message;
+    messageElement.className = status;
+
+    setTimeout(() => {
+        messageElement.textContent="";
+        messageElement.className="";
+    }, 4000);
+}
+
 // Adatok betöltése AJAX segítségével
 function loadHikers() {
     fetch("/hikers")
@@ -51,3 +62,29 @@ function filterTable() {
         row.style.display = (name.includes(input) || barcode.includes(input)) ? "" : "none";
     });
 }
+
+document.getElementById("export-csv").addEventListener("click", async function () {
+    try {
+        const response = await fetch("/export-csv");
+
+        if(!response.ok) {
+            const data = await response.json();
+            showMessage(data.message, data.status);
+            return;
+        }
+        // CSV letöltése
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "hikers_export.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        showMessage("A CSV exportálás sikeres volt!", "success");
+    } catch (error) {
+        showMessage("Ismeretlen hiba történt.", "error");
+    }
+});
+

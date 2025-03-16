@@ -47,3 +47,18 @@ button:active {
     background-color: #d6d6d6;
     box-shadow: none;
 }
+
+.wallpaper {
+    margin-top: 40px;
+    width: 60vw;
+}
+.wallpaper img {
+    width: 750px;
+    border-radius: 10px;
+}
+
+.logout button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}

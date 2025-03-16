@@ -9,6 +9,8 @@ import { Strategy } from "passport-local";
 import dotenv from "dotenv";
 import { isAuthenticated, isSysAdmin, isUser, isViewer } from "./middlewares/authMiddleware.js";
 import os from "os";
+import fs from "fs";
+import { Parser } from "json2csv";
 
 
 
@@ -65,53 +67,23 @@ app.get("/main", (req, res) => {
     }
 });
 
-//Admin oldal megjelenítése
-/*app.get("/admin", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render("admin.ejs");
-    } else {
-        res.redirect("/");
-    }
-});*/
-
 app.get("/admin", isSysAdmin, (req, res) => {
     res.render("admin.ejs", { user: req.user });
 });
 
-//Regisztrációs oldal megjelenítése
-/*app.get("/regisztracio", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render("register.ejs");
-    } else {
-        res.redirect("/");
-    }
-});*/
+
 
 app.get("/regisztracio", isUser, (req, res) => {
     res.render("register.ejs", { user: req.user });
 });
 
-//Indító oldal megjelenítése
-/*app.get("/inditas", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render("start.ejs");
-    } else {
-        res.redirect("/");
-    }
-});*/
+
 
 app.get("/inditas", isUser, (req, res) => {
     res.render("start.ejs", { user: req.body.user });
 })
 
-//Lekérdezős, módosítós oldal megjelenítése
-/*app.get("/modositas", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render("query.ejs");
-    } else {
-        res.redirect("/");
-    }
-});*/
+
 
 app.get("/modositas", isViewer, (req, res) => {
     res.render("query.ejs", { user: req.body.user });
@@ -122,6 +94,15 @@ app.post("/login", passport.authenticate("local", {
     successRedirect: "/main",
     failureRedirect: "/"
 }));
+
+//kijelentkezés
+app.get("/logout", isViewer, (req, res) => {
+    req.logout(() => {
+        req.session.destroy(() => {
+            res.redirect("/");
+        });
+    });
+});
 
 passport.use(new Strategy(async function verify(username, password, cb){
     try {
@@ -162,6 +143,18 @@ passport.deserializeUser((user, cb) => {
     cb(null, user);
 });
 
+//checksum ellenőrző függvény
+function isValidEAN8(barcode) {
+    let sum = 0;
+    for (let i = 0; i < 7; i++) {
+        let digit = parseInt(barcode[i], 10);
+        sum += (i % 2 === 0) ? digit * 3 : digit;
+    }
+
+    let checksum = (10 - (sum % 10)) % 10;
+    return checksum === parseInt(barcode[7], 10);
+}
+
 let lastInsertedId = null;
 
 //túrázó beszúrása az adatbázisba a userformról
@@ -169,6 +162,10 @@ app.post("/registerhiker", isUser, async (req, res)=> {
     const name = req.body.name;
     const distance = req.body.distance;
     const barcode = req.body.barcode;
+
+    if(!isValidEAN8(barcode)) {
+        return res.json({ message: "A vonalkód NEM felel meg az EAN-8 szabványnak!", status: "error" });
+    }
 
     //ne legyen duplikált vonalkód
     try {
@@ -336,6 +333,32 @@ app.post("/update", isUser, async (req, res) => {
         }
     } else {
         res.redirect("/");
+    }
+});
+
+//adatok exportálása .csv-be
+app.get("/export-csv", isViewer, async (req, res)=> {
+    try {
+        const result = await db.query("SELECT * FROM hikers ORDER BY id ASC");
+        const hikers = result.rows;
+
+        if(hikers.length === 0) {
+            return res.status(404).json({ message: "Nincsenek adatok az exporthoz!", status: "error" });
+        }
+
+        const csvFields = ["id", "name", "barcode", "distance", "departure", "arrival"];
+        const json2csvParser = new Parser({ fields: csvFields });
+        const csvData = json2csvParser.parse(hikers);
+
+        const filePath = "exports/hikers_export.csv";
+        fs.writeFileSync(filePath, csvData, "utf-8");
+
+        res.download(filePath, "hikers_export.csv", () => {
+            fs.unlinkSync(filePath); // Letöltés után töröljük a fájlt
+        });
+    } catch(err) {
+        console.error("Hiba történt az exportálás során:", err);
+        res.status(500).json({ message: "Hiba történt az exportálás során!", status: "error" });
     }
 });
 
