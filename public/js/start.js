@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const completion = document.getElementById("completion-result");
     const barcodeInput = document.getElementById("barcode");
 
+
     //AJAX hozzáadása
     starterForm.addEventListener("submit", async function(event) {
         event.preventDefault();
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sMessageElement.className = data.status; // success vagy error class
         name.textContent = data.hikerName;
         completion.textContent = data.completion;
+        completion.className = data.isInTime;
 
         barcodeInput.value="";
         barcodeInput.focus();
@@ -31,9 +33,11 @@ document.addEventListener("DOMContentLoaded", function () {
         //3másodperc múlva tűnjön el a fogadó üzenet
         setTimeout(()=> {
             sMessageElement.textContent = "";
-            sMessageElement.textContent = "";
+            sMessageElement.className = "";
             name.textContent = "";
             completion.textContent = "";
+            completion.className = "";
+    
         }, 4000);
 
     });

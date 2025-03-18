@@ -49,9 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        /*let departure = parseDate(selectedRow.cells[3].textContent);
-        let arrival = parseDate(selectedRow.cells[4].textContent);*/
-
         let departure = parseDate(selectedRow.cells[4].textContent);
         let arrival = parseDate(selectedRow.cells[5].textContent);
 

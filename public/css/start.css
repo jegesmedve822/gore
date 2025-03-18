@@ -99,7 +99,6 @@ button:active {
 }
 
 #completion-result {
-    color: #333;
     font-size: 35px;
 }
 
@@ -125,5 +124,12 @@ button:active {
     background-color: #e0e0e0;
 }
 
+.notin {
+    color: red;
+}
+
+.in {
+    color: green
+}
 
 

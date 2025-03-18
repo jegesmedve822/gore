@@ -223,10 +223,11 @@ app.post("/recordtimestamp", isUser, async (req, res) => {
         
         //ha nem, akkor beállítjuk az indulási időnek a currentdatet
         if(departureValue.rows.length > 0 && departureValue.rows[0].departure === null) {
+            const hikerName = checkResult.rows[0].name;
             const currentDate = new Date();
             await db.query("UPDATE hikers SET departure = $1 WHERE barcode = $2",
                 [currentDate, barcode]);
-            return res.json({ message: "Az INDULÁSI dátum sikeresen rögzítve az adatbázisban!", status: "success" });
+            return res.json({ message: "Az INDULÁSI dátum sikeresen rögzítve az adatbázisban!", status: "success", hikerName: hikerName });
         }
         //Ha a dátum benne van a departure mezőben, akkor megnézzük, hogy eltelt-e a rögzítés óta 20 perc. Ha nem, nem szúrjuk be az új rekordot, ha igen, beszúrjuk az arrival dátumnak.
         if(departureValue.rows.length > 0 && departureValue.rows[0].departure !== null) {
@@ -239,7 +240,7 @@ app.post("/recordtimestamp", isUser, async (req, res) => {
                 const dateDiff = (currentDate - new Date(departureDate))/(1000*60);
 
                 //ha x perc nem telt el, ne illessze be a rekordot
-                if(dateDiff < 1)  {
+                if(dateDiff < 0)  {
                     return res.json({ message: "Nem telt el x perc az elindulás óta, ezért az érkezési időpont NEM került beillesztésre!", status: "error" });
                 } else {
                     //Arrival dátum beillesztése az adatbázisba
@@ -256,11 +257,21 @@ app.post("/recordtimestamp", isUser, async (req, res) => {
                     const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
                     const completionTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
                     
+                    let isInTime = 'notin';
+                    //távolság lekérdezése az adatbázisból
+                    const distance = checkResult.rows[0].distance;
+                    if ((distance == 12 && hours < 5) ||
+                        (distance == 24 && hours < 7) ||
+                        (distance == 34 && hours < 9)) {
+                            isInTime = 'in';
+                    }
+                    
                     return res.json({ 
                         message: "Az ÉRKEZÉSI idő sikeresen rögzítve az adatbázisba!",
                         status: "success",
                         completion: completionTime, 
-                        hikerName: hikerName
+                        hikerName: hikerName,
+                        isInTime: isInTime
                     });
                 }
             } else {
