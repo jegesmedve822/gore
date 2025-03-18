@@ -100,8 +100,18 @@
 
         <!-- Jobb oldali panel -->
         <div class="right-panel">
-            <h2>Későbbi funkciók</h2>
-            <p>Más adminisztrációs funkciók itt jelennek meg.</p>
+            <h2>Adatbázis műveletek</h2>
+            <button class="db-action" data-action="backup">Adatbázis mentése</button>
+            <button class="db-action" data-action="restore">Adatbázis visszaállítása</button>
+            <button class="db-action" data-action="purge">Régi adatok törlése</button>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <p id="confirmMessage">Biztosan végrehajtod ezt a műveletet?</p>
+            <button id="confirmYes">Igen</button>
+            <button id="confirmNo">Mégse</button>
         </div>
     </div>
 
@@ -109,5 +119,6 @@
     <script src = "js/authentication.js"></script>
     <script src = "js/adminMonitor.js"></script>
     <script src = "js/serverHistory.js"></script>
+    <script src="js/admin_db_actions.js"></script>
 </body>
 </html>

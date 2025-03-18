@@ -206,3 +206,82 @@ button:active {
     background-color: #e0e0e0;
 }
 
+/* Modal háttér */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Sötétebb háttér az erőteljesebb kontrasztért */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal tartalom */
+.modal-content {
+    background-color: #fff; /* Tiszta fehér háttér */
+    padding: 20px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Lágy árnyék a kiemeléshez */
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Animáció a megjelenéskor */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Üzenet szövege */
+#confirmMessage {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Gombok elrendezése */
+.modal-content button {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+    margin: 5px;
+}
+
+/* Igen gomb */
+#confirmYes {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirmYes:hover {
+    background-color: #218838;
+}
+
+/* Mégse gomb */
+#confirmNo {
+    background-color: #dc3545;
+    color: white;
+}
+
+#confirmNo:hover {
+    background-color: #c82333;
+}
+
+

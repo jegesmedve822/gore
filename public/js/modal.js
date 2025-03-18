@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("edit-name").value = selectedRow.cells[1].textContent;
         document.getElementById("edit-barcode").value = selectedRow.cells[2].textContent;
 
+
+
         //innen jön a bug fixálás
         function parseDate(dateString) {
             if (!dateString || dateString === "—") return ""; // Ha üres, ne írjunk semmit a mezőbe
@@ -47,8 +49,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        let departure = parseDate(selectedRow.cells[3].textContent);
-        let arrival = parseDate(selectedRow.cells[4].textContent);
+        /*let departure = parseDate(selectedRow.cells[3].textContent);
+        let arrival = parseDate(selectedRow.cells[4].textContent);*/
+
+        let departure = parseDate(selectedRow.cells[4].textContent);
+        let arrival = parseDate(selectedRow.cells[5].textContent);
+
+
 
         document.getElementById("edit-departure").value = departure;
         document.getElementById("original-departure").value = departure;

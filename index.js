@@ -336,6 +336,8 @@ app.post("/update", isUser, async (req, res) => {
     }
 });
 
+
+
 //adatok exportálása .csv-be
 app.get("/export-csv", isViewer, async (req, res)=> {
     try {
@@ -462,6 +464,27 @@ app.get("/server-history", isSysAdmin, async(req, res) => {
         res.status(500).json({ message:"Hiba a szerver állapot lekérése közben.", status: "error", });
     }
 });
+
+//db tisztítások, trükközések
+app.post("/db-action/:action", isSysAdmin, async (req, res) => {
+    const { action } = req.params;
+
+    try {
+        let query = "";
+        if (action === "backup") query = "CALL archive_hikers()";
+        else if (action === "restore") query = "CALL restore_hikers()";
+        else if (action === "purge") query = "DELETE FROM hikers ";
+        else return res.status(400).json({ message: "Érvénytelen művelet!", status: "error" });
+
+        await db.query(query);
+        res.json({ message: `A ${action.toUpperCase()} művelet sikeresen lefutott!`, status: "success" });
+
+    } catch (error) {
+        console.error("DB művelet hiba:", error);
+        res.status(500).json({ message: "Hiba történt az adatbázisművelet során!", status: "error" });
+    }
+});
+
 
 // Szerver futtatása
 app.listen(port, () => {
