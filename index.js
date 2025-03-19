@@ -240,7 +240,7 @@ app.post("/recordtimestamp", isUser, async (req, res) => {
                 const dateDiff = (currentDate - new Date(departureDate))/(1000*60);
 
                 //ha x perc nem telt el, ne illessze be a rekordot
-                if(dateDiff < 0)  {
+                if(dateDiff < 1)  {
                     return res.json({ message: "Nem telt el x perc az elindulás óta, ezért az érkezési időpont NEM került beillesztésre!", status: "error" });
                 } else {
                     //Arrival dátum beillesztése az adatbázisba
