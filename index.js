@@ -11,6 +11,7 @@ import { isAuthenticated, isSysAdmin, isUser, isViewer } from "./middlewares/aut
 import os from "os";
 import fs from "fs";
 import { Parser } from "json2csv";
+import nodemailer from "nodemailer";
 
 
 
@@ -57,6 +58,32 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
     res.render("login.ejs")
 });
+
+//nodemailer beállítások
+async function sendEmail(toEmail, username, password) {
+    let transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_PROVIDER,
+        auth: {
+            user: process.env.EMAIL_SENDER,
+            pass: process.env.EMAIL_PASSWORD
+        }
+    });
+
+    let mailOptions = {
+        from: process.env.EMAIL_SENDER,
+        to: toEmail,
+        subject: "Göre-app felhasználói fiókod létrejött!",
+        text: `Szia!\n\n A Göre apphoz tartozó felhasználói fiókod létrejött!\n\nBejelentkezési adatok:\nFelhasználónév: ${username}\nJelszó: ${password}\n\nJó munkát!`
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log("Email sikeresen elküldve!");
+    } catch(error) {
+        console.error("Email küldési hiba:", error);
+    }
+    
+}
+
 
 //főoldal megjelenítése
 app.get("/main", (req, res) => {
@@ -393,6 +420,14 @@ app.post("/create-sysuser", isSysAdmin, async (req, res) => {
                     const password_hash = await bcrypt.hash(password, saltRounds);
 
                     await db.query("INSERT INTO sys_users (user_name, user_email, password, role) VALUES($1, $2, $3, $4)", [username, email, password_hash, role]);
+
+                    //email kiküldése
+                    sendEmail(email, username, password)
+                    .then(()=> {
+                    })
+                    .catch(error=> {
+                    });
+
                     return res.json({ message: "A felhasználó sikeresen létrehozva!", status: "success" });
                 }
             } if(req.body.action==="delete") {

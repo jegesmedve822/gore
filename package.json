@@ -20,6 +20,7 @@
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
     "json2csv": "^6.0.0-alpha.2",
+    "nodemailer": "^6.10.0",
     "os": "^0.1.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
