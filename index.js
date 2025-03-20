@@ -7,7 +7,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
 import dotenv from "dotenv";
-import { isAuthenticated, isSysAdmin, isUser, isViewer } from "./middlewares/authMiddleware.js";
+import { isAuthenticated, isSysAdmin, isUser, isViewer, isStarter } from "./middlewares/authMiddleware.js";
 import os from "os";
 import fs from "fs";
 import { Parser } from "json2csv";
@@ -106,9 +106,9 @@ app.get("/regisztracio", isUser, (req, res) => {
 
 
 
-app.get("/inditas", isUser, (req, res) => {
+app.get("/inditas",isStarter, (req, res) => {
     res.render("start.ejs", { user: req.body.user });
-})
+});
 
 
 
@@ -123,7 +123,7 @@ app.post("/login", passport.authenticate("local", {
 }));
 
 //kijelentkezés
-app.get("/logout", isViewer, (req, res) => {
+app.get("/logout", isAuthenticated, (req, res) => {
     req.logout(() => {
         req.session.destroy(() => {
             res.redirect("/");
@@ -233,7 +233,7 @@ app.post("/undo", isUser, async (req, res) => {
 });
 
 //--------------------------------------innentől jönnek a második fül funkciói------------------------------
-app.post("/recordtimestamp", isUser, async (req, res) => {
+app.post("/recordtimestamp", isStarter, async (req, res) => {
     const barcode = req.body.barcode;
 
     try{

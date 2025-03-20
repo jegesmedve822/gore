@@ -39,3 +39,13 @@ export function isViewer(req, res, next) {
     }
 }
 
+//starter jogosultság
+export function isStarter(req, res, next) {
+    if(!req.isAuthenticated()) {
+        return res.redirect("/");
+    } if (req.user.role === "starter" || req.user.role === "user" || req.user.role === "sysadmin") {
+        return next();
+    } else {
+        return res.status(403).render("error.ejs", { message: "Ehhez a funkcióhoz nincs jogosultságod!" });
+    }
+}
