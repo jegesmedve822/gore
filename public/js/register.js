@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const registerForm = document.getElementById("registerForm");
     const messageElement = document.getElementById("message");
 
+    let timeoutId;
+
     // Regisztráció AJAX
     registerForm.addEventListener("submit", async function (event) {
         event.preventDefault(); // Ne töltse újra az oldalt!
@@ -20,10 +22,15 @@ document.addEventListener("DOMContentLoaded", function () {
         messageElement.textContent = data.message;
         messageElement.className = data.status; // success vagy error class
 
+        if(timeoutId) {
+            clearTimeout(timeoutId);
+        }
+
         // 3 másodperc múlva eltünteti az üzenetet
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
             messageElement.textContent = "";
             messageElement.className = "";
         }, 3000);
+
     });
 });

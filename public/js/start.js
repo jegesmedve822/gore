@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const completion = document.getElementById("completion-result");
     const barcodeInput = document.getElementById("barcode");
 
+    let timeoutId;
+
 
     //AJAX hozzáadása
     starterForm.addEventListener("submit", async function(event) {
@@ -30,14 +32,18 @@ document.addEventListener("DOMContentLoaded", function () {
         barcodeInput.value="";
         barcodeInput.focus();
 
-        //3másodperc múlva tűnjön el a fogadó üzenet
-        setTimeout(()=> {
+        if(timeoutId) {
+            clearTimeout(timeoutId);
+        }
+
+        timeoutId = setTimeout(() => {
             sMessageElement.textContent = "";
             sMessageElement.className = "";
             name.textContent = "";
             completion.textContent = "";
             completion.className = "";
-    
+
+            timeoutId = null;
         }, 4000);
 
     });

@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const deleteFields = document.getElementById("deleteFields");
     const updateFields = document.getElementById("updateFields");
 
+    let timeoutId;
+
     actionSelect.addEventListener("change", function () {
         adminForm.style.display = "none";
         createFields.style.display = "none";
@@ -57,9 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
         messageElement.textContent = data.message;
         messageElement.className = data.status;
 
-        setTimeout(() => {
+        if(timeoutId) {
+            clearTimeout(timeoutId);
+        }
+
+        timeoutId = setTimeout(() => {
             messageElement.textContent = "";
             messageElement.className = "";
         }, 3000);
+
     });
 });
