@@ -45,6 +45,18 @@ input {
     transition: border 0.2s ease-in-out;
 }
 
+select {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    transition: border 0.2s ease-in-out;
+    width: 100%; /* Biztosítja, hogy ugyanakkora legyen, mint az input mezők */
+    background-color: white;
+    appearance: none; /* Az alapértelmezett stílusok eltüntetése */
+}
+
 input:focus {
     border-color: #888;
 }
