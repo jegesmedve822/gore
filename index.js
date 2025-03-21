@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
 import ejs from "ejs";
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
@@ -26,6 +26,9 @@ dotenv.config();
 
 //Public mappa hozzáadása
 app.use(express.static("public"));
+
+//bcrypt fixálás
+
 
 //Új session létrehozása, mindig a passport előtt kell lennie!
 app.use(
@@ -140,7 +143,7 @@ passport.use(new Strategy(async function verify(username, password, cb){
             const storedHashedPassword = user.password;
 
             //Összehasonlítjuk a hash értékeket
-            bcrypt.compare(password, storedHashedPassword, (err, result) => {
+            bcryptjs.compare(password, storedHashedPassword, (err, result) => {
                 if(err) {
                     return cb(err);
                 } else {
@@ -417,7 +420,7 @@ app.post("/create-sysuser", isSysAdmin, async (req, res) => {
                     const email = req.body.email;
                     const role = req.body.role;
                     const password = req.body.password;
-                    const password_hash = await bcrypt.hash(password, saltRounds);
+                    const password_hash = await bcryptjs.hash(password, saltRounds);
 
                     await db.query("INSERT INTO sys_users (user_name, user_email, password, role) VALUES($1, $2, $3, $4)", [username, email, password_hash, role]);
 
