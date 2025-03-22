@@ -217,23 +217,6 @@ app.post("/registerhiker", isUser, async (req, res)=> {
     }
 });
 
-//utolsó rekord törlése az adatbázisból
-app.post("/undo", isUser, async (req, res) => {
-    try {
-        if(!lastInsertedId) {
-            return res.json({ message: "Nincs törölhető rekord!", status: "error", canUndo: false });
-        }
-
-        await db.query("DELETE FROM hikers WHERE id = $1", [lastInsertedId]);
-        lastInsertedId = null;
-
-        res.json({ message: "Az utolsó rekord sikeresen visszavonva!", status: "success", canUndo: false });
-
-    } catch (err) {
-        console.log(err);
-        res.json({ message: "Hiba történt a visszavonás során!", status: "error", canUndo: false });
-    }
-});
 
 //--------------------------------------innentől jönnek a második fül funkciói------------------------------
 app.post("/recordtimestamp", isStarter, async (req, res) => {
