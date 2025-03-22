@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("edit-id").value = selectedRow.cells[0].textContent;
         document.getElementById("edit-name").value = selectedRow.cells[1].textContent;
         document.getElementById("edit-barcode").value = selectedRow.cells[2].textContent;
+        document.getElementById("edit-distance").value = selectedRow.cells[3].textContent;
 
 
 
@@ -74,7 +75,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const id = document.getElementById("edit-id").value;
         const name = document.getElementById("edit-name").value;
+        const distance = document.getElementById("edit-distance").value;
         const barcode = document.getElementById("edit-barcode").value;
+
 
         let departure = document.getElementById("edit-departure").value;
         let arrival = document.getElementById("edit-arrival").value;
@@ -89,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch("/update", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id, name, barcode, departure, arrival })
+                body: JSON.stringify({ id, name, distance, barcode, departure, arrival })
             });
 
             if(response.status === 403) {

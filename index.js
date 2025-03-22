@@ -353,7 +353,7 @@ app.get("/hikers", isViewer, async (req, res) => {
 //a módosítás funkciója
 app.post("/update", isUser, async (req, res) => {
     if(req.isAuthenticated()) {
-        const { id, name, barcode, departure, arrival } = req.body;
+        const { id, name, barcode, distance, departure, arrival } = req.body;
 
         try {
             const result = await db.query("SELECT departure, arrival FROM hikers WHERE id = $1", [id]);
@@ -365,8 +365,8 @@ app.post("/update", isUser, async (req, res) => {
 
 
             await db.query(
-                "UPDATE hikers SET name = $1, barcode = $2, departure = $3, arrival = $4 WHERE id = $5",
-                [name, barcode, departure || null, arrival ||null, id]
+                "UPDATE hikers SET name = $1, barcode = $2, distance = $3, departure = $4, arrival = $5 WHERE id = $6",
+                [name, barcode, distance, departure || null, arrival ||null, id]
             );
             res.json({ message: "Sikeresen frissítve!", status: "success" });
         } catch(err) {
