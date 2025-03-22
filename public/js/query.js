@@ -1,6 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
     loadHikers();
     document.getElementById("searchInput").addEventListener("keyup", filterTable);
+
+    setInterval(() => {
+        const modal = document.getElementById("editModal");
+        const isModalOpen = modal && modal.style.display === "block";
+        if (!isModalOpen) {
+            loadHikers();
+        } else {
+            showMessage("Módosítás folyamatban - frissítés szünetel", "error");
+        }
+    }, 10000);
 });
 
 const messageElement = document.getElementById("message");
