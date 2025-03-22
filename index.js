@@ -324,14 +324,23 @@ app.get("/hikers", isViewer, async (req, res) => {
         try {
             const result = await db.query("SELECT * FROM hikers ORDER BY distance, id ASC");
 
-            //új tömb, ami megadja a teljesítési időt, ha az létezik
             const hikersWithCompletionTime = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
 
-                if(hiker.departure && !hiker.arrival) {
+                const departureDate = hiker.departure ? new Date(hiker.departure) : null;
+                const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
+
+                // ÚJ: Feladás ellenőrzés
+                const isDroppedOut =
+                    (departureDate && departureDate.toISOString().slice(0, 10) === "9999-12-31") ||
+                    (arrivalDate && arrivalDate.toISOString().slice(0, 10) === "9999-12-31");
+
+                if (isDroppedOut) {
+                    completionTime = "Feladta";
+                } else if (departureDate && !arrivalDate) {
                     completionTime = "Még nem érkezett be";
-                } else if (hiker.departure && hiker.arrival) {
-                    const diffMs = new Date(hiker.arrival) - new Date(hiker.departure);
+                } else if (departureDate && arrivalDate) {
+                    const diffMs = arrivalDate - departureDate;
                     const hours = Math.floor(diffMs / (1000 * 60 * 60));
                     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
@@ -343,12 +352,13 @@ app.get("/hikers", isViewer, async (req, res) => {
 
             res.json(hikersWithCompletionTime);
         } catch (err) {
-            res.status(500).json({ message: "Hiba az adatok betöltésekot.", status: "error" });
+            res.status(500).json({ message: "Hiba az adatok betöltésekor.", status: "error" });
         };
     } else {
         res.redirect("/");
     }
 });
+
 
 //a módosítás funkciója
 app.post("/update", isUser, async (req, res) => {
