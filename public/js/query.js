@@ -1,3 +1,5 @@
+let selectedHikerId = null;
+
 document.addEventListener("DOMContentLoaded", function () {
     loadHikers();
     document.getElementById("searchInput").addEventListener("keyup", filterTable);
@@ -57,7 +59,21 @@ function renderTable(hikers) {
         `;
 
         tbody.appendChild(row);
+
     });
+
+    filterTable();
+
+    attachRowClickEvents();
+
+    if (selectedHikerId) {
+        let rows = document.querySelectorAll("#hikersTable tbody tr");
+        rows.forEach(row => {
+            if (row.cells[0].textContent === selectedHikerId) {
+                row.classList.add("selected");
+            }
+        });
+    }
 }
 
 // Táblázatban történő keresés
@@ -70,6 +86,21 @@ function filterTable() {
         let barcode = row.cells[2].textContent.toLowerCase();
 
         row.style.display = (name.includes(input) || barcode.includes(input)) ? "" : "none";
+    });
+}
+
+function attachRowClickEvents() {
+    document.querySelectorAll("#hikersTable tbody tr").forEach(row => {
+        row.addEventListener("click", function () {
+            // Előző kijelölés törlése
+            document.querySelectorAll("#hikersTable tbody tr").forEach(r => r.classList.remove("selected"));
+
+            // Új kijelölés
+            this.classList.add("selected");
+
+            // Kiválasztott ID mentése
+            selectedHikerId = this.cells[0].textContent;
+        });
     });
 }
 
