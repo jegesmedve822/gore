@@ -1,0 +1,149 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: blanchedalmond;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Központi wrapper */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* Fejléc */
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 6vw; /* skálázható méret */
+    word-break: break-word;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: rgb(241, 220, 174);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+/* Input mező */
+input[type="text"] {
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+}
+
+input:focus {
+    border-color: #888;
+}
+
+/* Címkék */
+label {
+    font-weight: bold;
+    color: #444;
+    text-align: left;
+}
+
+/* Gomb */
+button {
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #333;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #e0e0e0;
+}
+
+button:active {
+    background-color: #d6d6d6;
+    box-shadow: none;
+}
+
+/* Menü gomb */
+.menu-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.menu-button button {
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+/* Üzenetek */
+#s-message,
+#hiker-name,
+#completion-result {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    word-break: break-word;
+}
+
+#hiker-name {
+    font-size: 1.6rem;
+    color: #333;
+}
+
+#completion-result {
+    font-size: 1.4rem;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+
+/* 🔧 Mobiloptimalizálás: extra biztonság 360px körül */
+@media (max-width: 400px) {
+    form {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    h1 {
+        font-size: 7vw;
+    }
+
+    button {
+        font-size: 0.95rem;
+    }
+
+    #hiker-name {
+        font-size: 1.3rem;
+    }
+
+    #completion-result {
+        font-size: 1.2rem;
+    }
+}

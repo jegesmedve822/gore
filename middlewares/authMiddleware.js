@@ -49,3 +49,32 @@ export function isStarter(req, res, next) {
         return res.status(403).render("error.ejs", { message: "Ehhez a funkcióhoz nincs jogosultságod!" });
     }
 }
+
+//checkpoint jpgosultság
+export function isCheckpoint(req, res, next) {
+    if(!req.isAuthenticated()) {
+        return res.redirect("/");
+    }
+    if(req.user.role && req.user.role.startsWith("c-")) {
+        return next();
+    } else {
+        return res.status(403).render("error.ejs", { message: "Ehhez a funkcióhoz nincs jogosultságod!" });
+    }
+}
+
+export function isCoreUser(req, res, next) {
+    if (!req.isAuthenticated()) {
+        return res.redirect("/");
+    }
+
+    const role = req.user.role.toLowerCase();
+
+    if (role.startsWith("c-")) {
+        // Checkpoint user, ide nem jöhet
+        return res.status(403).render("error.ejs", {
+            message: "Ehhez a felülethez nincs jogosultságod!"
+        });
+    }
+    return next();
+}
+

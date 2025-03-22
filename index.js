@@ -7,7 +7,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
 import dotenv from "dotenv";
-import { isAuthenticated, isSysAdmin, isUser, isViewer, isStarter } from "./middlewares/authMiddleware.js";
+import { isAuthenticated, isSysAdmin, isUser, isViewer, isStarter, isCheckpoint, isCoreUser } from "./middlewares/authMiddleware.js";
 import os from "os";
 import fs from "fs";
 import { Parser } from "json2csv";
@@ -94,12 +94,8 @@ async function sendEmail(toEmail, username, password) {
 
 
 //főoldal megjelenítése
-app.get("/main", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render("main.ejs");
-    } else {
-        res.redirect("/");
-    }
+app.get("/main", isCoreUser, (req, res) => {
+    res.render("main.ejs");
 });
 
 app.get("/admin", isSysAdmin, (req, res) => {
@@ -121,14 +117,64 @@ app.get("/inditas",isStarter, (req, res) => {
 
 
 app.get("/modositas", isViewer, (req, res) => {
+    res.render("queries.ejs", { user: req.body.user });
+});
+
+app.get("/torzsadatok", isViewer, (req, res) => {
     res.render("query.ejs", { user: req.body.user });
 });
 
+app.get("/reszletesadatok", isViewer, (req, res) => {
+    res.render("mapquery.ejs", { user: req.body.user });
+});
+
+//checkpoint oldal megjelenítése
+app.get("/checkpoint", isCheckpoint, (req, res) => {
+    const role = req.user.role.toLowerCase();
+    const checkpointKey = role.replace("c-","");
+
+    const checkpointNames = {
+        piroshaz: "Piros ház",
+        gyugy: "Gyugy",
+        gorekilato: "Göre-kilátó",
+        kishegy: "Kishegy",
+        harsaspuszta: "Hársas-puszta",
+        bendekpuszta: "Béndek-puszta"
+    }
+
+    const checkpointName = checkpointNames[checkpointKey];
+
+    res.render("checkpoint.ejs", {
+        username: req.user.user_name,
+        checkpointRole: role,
+        checkpointName
+    });
+});
+
 //Bejelentkezés az oldalra
-app.post("/login", passport.authenticate("local", {
+/*app.post("/login", passport.authenticate("local", {
     successRedirect: "/main",
     failureRedirect: "/"
-}));
+}));*/
+
+app.post("/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if(err) return next(err);
+        if(!user) return res.redirect("/");
+
+        req.logIn(user, (err) => {
+            if (err) return next(err);
+
+            const role = user.role;
+
+            if(role.startsWith("c-")) {
+                return res.redirect("/checkpoint");
+            }
+
+            return res.redirect("/main");
+        });
+    })(req, res, next);
+});
 
 //kijelentkezés
 app.get("/logout", isAuthenticated, (req, res) => {
@@ -531,6 +577,61 @@ app.post("/db-action/:action", isSysAdmin, async (req, res) => {
         res.status(500).json({ message: "Hiba történt az adatbázisművelet során!", status: "error" });
     }
 });
+
+//checkpointról történő adatbevitel
+app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
+    const role = req.user.role;
+    const input = req.body.barcode;
+    const timestamp = new Date();
+
+    const columnDictionary = {
+        "c-piroshaz": "piros_haz",
+        "c-gyugy": "gyugy",
+        "c-gorekilato": "gore_kilato",
+        "c-kishegy": "kishegy",
+        "c-harsaspuszta": "harsas_puszta",
+        "c-bendekpuszta": "bendek_puszta"
+    };
+
+    const column = columnDictionary[role];
+
+    if (!column) {
+        return res.status(400).json({ message: "Ismeretlen checkpoint szerepkör!", status: "error" });
+    }
+
+    try {
+        const hikerExists = await db.query("SELECT barcode FROM hikers WHERE barcode = $1", [input]);
+        if (hikerExists.rows.length === 0) {
+            return res.json({ message: "A beírt vonalkóddal NEM történt regisztráció", status: "error" });
+        }
+
+        const checkpointData = await db.query(`SELECT ${column} FROM checkpoints WHERE barcode = $1`, [input]);
+
+        if (checkpointData.rows.length === 0) {
+            // Új rekord beszúrása
+            const insertQuery = `INSERT INTO checkpoints (barcode, ${column}) VALUES ($1, $2)`;
+            await db.query(insertQuery, [input, timestamp]);
+            return res.json({ message: "Az érkezési idő sikeresen beillesztve (új rekord)", status: "success" });
+        }
+
+        const existingValue = checkpointData.rows[0][column];
+
+        if (existingValue != null) {
+            return res.json({ message: "A dátum korábban már rögzítve lett!", status: "error" });
+        }
+
+        const updateQuery = `UPDATE checkpoints SET ${column} = $1 WHERE barcode = $2`;
+        await db.query(updateQuery, [timestamp, input]);
+        return res.json({ message: "Az érkezési idő sikeresen frissítve", status: "success" });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Szerverhiba!", status: "error" });
+    }
+});
+
+
+
 
 
 // Szerver futtatása

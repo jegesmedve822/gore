@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= checkpointName %> - Checkpoint</title>
+    <link rel="stylesheet" href="css/checkpoint.css">
+</head>
+<body>
+    <div class="menu-button">
+        <a href="/logout">
+            <button type="button">Kijelentkezés</button>
+        </a>
+    </div>
+
+    <div class="wrapper">
+        <h1><%= checkpointName %></h1>
+
+        <p id="s-message"></p>
+        <p id="hiker-name"></p>
+        <p id="completion-result"></p>
+
+        <form id="starterForm">
+            <label for="barcode">Vonalkód:</label>
+            <input
+                type="text"
+                id="barcode"
+                name="barcode"
+                pattern="\d{8}"
+                title="Csak 8 számjegyű EAN-8 vonalkód fogadható el!"
+                required
+                autofocus
+            >
+            <br>
+            <button type="submit">Érkezés rögzítése</button>
+        </form>
+    </div>
+
+    <script>
+        const checkpointRole = "<%= checkpointRole %>";
+    </script>
+    <script src="js/checkpoint.js"></script>
+</body>
+</html>
