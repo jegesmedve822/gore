@@ -27,7 +27,6 @@ dotenv.config();
 //Public mappa hozzáadása
 app.use(express.static("public"));
 
-//bcrypt fixálás
 
 
 //Új session létrehozása, mindig a passport előtt kell lennie!
@@ -65,10 +64,16 @@ app.get("/", (req, res) => {
 //nodemailer beállítások
 async function sendEmail(toEmail, username, password) {
     let transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        secure: false,
         service: process.env.EMAIL_PROVIDER,
         auth: {
             user: process.env.EMAIL_SENDER,
             pass: process.env.EMAIL_PASSWORD
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     });
 
