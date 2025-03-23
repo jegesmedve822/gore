@@ -378,7 +378,7 @@ app.get("/hikers", isViewer, async (req, res) => {
                     const hours = Math.floor(diffMs / (1000 * 60 * 60));
                     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-                    completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
+                    const completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
                 }
 
                 return { ...hiker, completionTime };
@@ -628,6 +628,42 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: "Szerverhiba!", status: "error" });
     }
+});
+
+//adatmegjelenítős állomáspontos oldal
+app.post("/get-checkpoint-data", isViewer, async (req, res) => {
+    const distance = req.body.distance;
+
+    const stationColumns = {
+        12: ["piros_haz", "gyugy", "gore_kilato"],
+        24: ["kishegy", "piros_haz", "gore_kilato"],
+        34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
+    };
+    
+    const selectedColumns = stationColumns[distance].join(", ");
+
+    try {
+        const query = `
+            SELECT
+                h.name,
+                h.barcode,
+                h.departure,
+                h.arrival,
+                ${selectedColumns}
+            FROM hikers h
+            LEFT JOIN checkpoints c
+            ON h.barcode = c.barcode
+            WHERE h.distance = $1
+        `;
+
+        const result = await db.query(query, [distance]);
+        return res.json(result.rows);
+
+    } catch(err) {
+        console.error("Lekérdezési hiba:", err);
+        return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
+    }
+    
 });
 
 

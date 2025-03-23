@@ -14,8 +14,17 @@
     </div>
     <div class="wrapper">
         <div class="head">
-            <h1>Versenyzők megjelenítése</h1>
-            <input type="text" id="searchInput" placeholder="Keresés...">
+            <h1>Állomásra érkezések megjelenítése</h1>
+            <br>
+            <label for="distanceSelect">Táv kiválasztása:</label>
+            <select id="distanceSelect">
+                <option value="12">12 km</option>
+                <option value="24">24 km</option>
+                <option value="34">34 km</option>
+            </select>
+            <br>
+            <br>
+            <input type="text" id="searchInput" placeholder="Keresés név vagy vonalkód alapján">
             <button id="modify-data" type="submit">Adatok módosítása</button>
             <br>
             <button id="export-csv">Exportálás CSV-be</button>
@@ -54,25 +63,19 @@
             </div>
         </div>
 
-        <table id="hikersTable">
+        <table id="checkpointTable">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Név</th>
-                    <th>Vonalkód</th>
-                    <th>Táv</th>
-                    <th>Indulás</th>
-                    <th>Érkezés</th>
-                    <th>Teljesítési idő</th>
+                <tr id="table-header">
+                    <!-- Az adatok AJAX-szal töltődnek be -->
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="table-body">
                 <!-- Az adatok AJAX-szal töltődnek be -->
             </tbody>
         </table>
     </div>
 
-    <script src="js/query.js"></script>
+    <script src="js/checkpointquery.js"></script>
     <script src="js/modal.js"></script>
 </body>
 </html>
