@@ -135,6 +135,12 @@ button:hover {
     font-weight: bold; /* Félkövér szöveg */
 }
 
+#checkpointTable tbody tr.selected {
+    background-color: #ffcc80; /* Világos narancs háttér */
+    color: black; /* Szöveg színe marad fekete */
+    font-weight: bold; /* Félkövér szöveg */
+}
+
 .success {
     color: green;
 }

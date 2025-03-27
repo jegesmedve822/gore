@@ -593,6 +593,12 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
         "c-bendekpuszta": "bendek_puszta"
     };
 
+    const stationColumns = {
+        12: ["piros_haz", "gyugy", "gore_kilato"],
+        24: ["kishegy", "piros_haz", "gore_kilato"],
+        34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
+    };
+
     const column = columnDictionary[role];
 
     if (!column) {
@@ -600,9 +606,17 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
     }
 
     try {
-        const hikerExists = await db.query("SELECT barcode FROM hikers WHERE barcode = $1", [input]);
-        if (hikerExists.rows.length === 0) {
+        const hikerResult = await db.query("SELECT barcode, distance FROM hikers WHERE barcode = $1", [input]);
+        if (hikerResult.rows.length === 0) {
             return res.json({ message: "A beírt vonalkóddal NEM történt regisztráció", status: "error" });
+        }
+
+        const hikerDistance = hikerResult.rows[0].distance;
+        const allowedStations = stationColumns[hikerDistance];
+
+        if(!allowedStations.includes(column)) {
+            return res.json({ message: `Ez az állomás (${column}) nem része a ${hikerDistance} km-es távnak!`,
+            status: "error" });
         }
 
         const checkpointData = await db.query(`SELECT ${column} FROM checkpoints WHERE barcode = $1`, [input]);
@@ -622,7 +636,7 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
 
         const updateQuery = `UPDATE checkpoints SET ${column} = $1 WHERE barcode = $2`;
         await db.query(updateQuery, [timestamp, input]);
-        return res.json({ message: "Az érkezési idő sikeresen frissítve", status: "success" });
+        return res.json({ message: "Az érkezési idő sikeresen beillesztve", status: "success" });
 
     } catch (err) {
         console.error(err);
@@ -630,7 +644,8 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
     }
 });
 
-//adatmegjelenítős állomáspontos oldal
+
+//ada megjelenítése
 app.post("/get-checkpoint-data", isViewer, async (req, res) => {
     const distance = req.body.distance;
 
@@ -640,7 +655,8 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
     };
     
-    const selectedColumns = stationColumns[distance].join(", ");
+    const selectedStations = stationColumns[distance];
+    const selectedColumns = selectedStations.join(", ");
 
     try {
         const query = `
@@ -657,14 +673,108 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
         `;
 
         const result = await db.query(query, [distance]);
-        return res.json(result.rows);
 
-    } catch(err) {
+        const hikersWithStatus = result.rows.map(hiker => {
+            const hasDeparture = !!hiker.departure;
+            const hasArrival = !!hiker.arrival;
+
+            let status = "-";
+
+            if (!hasDeparture) {
+                status = "Még nem rajtolt";
+            } else if (hasArrival) {
+                status = "Megérkezett";
+            } else {
+                // Elindult, de még nincs érkezés – nézzük az állomásokat
+                let lastCheckpoint = null;
+                for (let i = selectedStations.length - 1; i >= 0; i--) {
+                    const stationKey = selectedStations[i];
+                    if (hiker[stationKey]) {
+                        lastCheckpoint = stationKey;
+                        break;
+                    }
+                }
+
+                if (lastCheckpoint) {
+                    status = lastCheckpoint; // kulcs, frontend feliratozza
+                } else {
+                    status = "Elindult";
+                }
+            }
+
+            return {
+                ...hiker,
+                status
+            };
+        });
+
+        return res.json(hikersWithStatus);
+
+    } catch (err) {
         console.error("Lekérdezési hiba:", err);
         return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
     }
-    
 });
+
+app.post("/update-checkpoint-data", isUser, async (req, res) => {
+    const { barcode, departure, arrival, stations, distance } = req.body;
+
+    try {
+        //hikers frissítése
+
+        await db.query(
+            `UPDATE hikers
+            SET departure = $1, arrival = $2
+            WHERE barcode = $3`,
+            [departure || null, arrival || null, barcode]
+        );
+
+        // === 2. Checkpoints frissítése (dinamikusan)
+        const stationColumns = {
+            12: ["piros_haz", "gyugy", "gore_kilato"],
+            24: ["kishegy", "piros_haz", "gore_kilato"],
+            34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
+        };
+
+        const allowedStations = stationColumns[distance];
+
+        if (!allowedStations) {
+            return res.status(400).json({ message: "Érvénytelen táv!", status: "error" });
+        }
+
+        // csak engedélyezett mezők kerülnek az update-be
+        const updateParts = [];
+        const updateValues = [];
+        let idx = 1;
+
+        for (let station of allowedStations) {
+            if (station in stations) {
+                updateParts.push(`${station} = $${idx}`);
+                updateValues.push(stations[station] || null);
+                idx++;
+            }
+        }
+
+        if (updateParts.length > 0) {
+            // hozzáadjuk a barcode-ot is a WHERE-hez
+            const updateQuery = `
+                UPDATE checkpoints
+                SET ${updateParts.join(", ")}
+                WHERE barcode = $${idx}
+            `;
+            updateValues.push(barcode);
+
+            await db.query(updateQuery, updateValues);
+        }
+
+        res.json({ message: "Adatok sikeresen frissítve!", status: "success" });
+    } catch (err) {
+        console.error("Frissítési hiba:", err);
+        res.status(500).json({ message: "Szerverhiba történt", status: "error" });
+    }
+});
+
+
 
 
 

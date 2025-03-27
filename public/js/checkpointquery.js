@@ -62,13 +62,15 @@ function renderTableRows(data, stations) {
     data.forEach(hiker => {
         const row = document.createElement("tr");
 
+        const lastCheckpointLabel = stationLabels[hiker.status] || hiker.status;
+
         row.innerHTML = `
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
             <td>${formatDate(hiker.departure)}</td>
             ${stations.map(st => `<td>${formatDate(hiker[st])}</td>`).join("")}
             <td>${formatDate(hiker.arrival)}</td>
-            <td>${hiker.completionTime || "—"}</td>
+            <td>${lastCheckpointLabel}</td>
         `;
 
         tbody.appendChild(row);

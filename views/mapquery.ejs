@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Részletes adatok</title>
+
     <link rel="stylesheet" href="css/query.css">
 </head>
 <body>
@@ -37,32 +38,28 @@
                 <h2>Adatok módosítása</h2>
                 <form id="editForm">
                     <input type="hidden" id="edit-id">
+        
                     <label for="edit-name">Név:</label>
-                    <input type="text" id="edit-name" required>
-
-                    <label for="edit-distance">Távolság:</label>
-                    <select id="edit-distance" name="distance" required>
-                        <option value="12">12 km</option>
-                        <option value="24">24 km</option>
-                        <option value="34">34 km</option>
-                    </select>
-
+                    <input type="text" id="edit-name" readonly>
+        
                     <label for="edit-barcode">Vonalkód:</label>
-                    <input type="text" id="edit-barcode" required>
-
+                    <input type="text" id="edit-barcode" readonly>
+        
                     <label for="edit-departure">Indulás:</label>
                     <input type="datetime-local" id="edit-departure">
-                    <input type="hidden" id="original-departure">
 
+                    <div id="station-fields">
+                        <!-- Dinamikusan ide jönnek az állomások a JS-ből -->
+                    </div>
+        
                     <label for="edit-arrival">Érkezés:</label>
                     <input type="datetime-local" id="edit-arrival">
-                    <input type="hidden" id="original-arrival">
-
+        
                     <button type="submit">Mentés</button>
                 </form>
             </div>
         </div>
-
+        
         <table id="checkpointTable">
             <thead>
                 <tr id="table-header">
@@ -76,6 +73,6 @@
     </div>
 
     <script src="js/checkpointquery.js"></script>
-    <script src="js/modal.js"></script>
+    <script src="js/checkpointmodal.js"></script>
 </body>
 </html>
