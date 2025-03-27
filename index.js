@@ -774,6 +774,31 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
     }
 });
 
+app.get("/export-csv-checkpoints", isViewer, async (req, res)=> {
+    try {
+        const result = await db.query("SELECT h.id, h.barcode, h.distance, h.departure, c.piros_haz, c.gyugy, c.gore_kilato, c.kishegy, c.harsas_puszta, h.arrival FROM hikers h LEFT JOIN checkpoints c ON h.barcode = c.barcode ORDER BY h.id ASC");
+        const hikers = result.rows;
+
+        if(hikers.length === 0) {
+            return res.status(404).json({ message: "Nincsenek adatok az exporthoz!", status: "error" });
+        }
+
+        const csvFields = ["id", "barcode", "tav", "indulas", "piroshaz", "gyugy", "gorekilato", "kishegy", "harsaspuszta", "bendekpuszta", "erkezes"];
+        const json2csvParser = new Parser({ fields: csvFields });
+        const csvData = json2csvParser.parse(hikers);
+
+        const filePath = "exports/hikers_export.csv";
+        fs.writeFileSync(filePath, csvData, "utf-8");
+
+        res.download(filePath, "hikers_export.csv", () => {
+            fs.unlinkSync(filePath); // Letöltés után töröljük a fájlt
+        });
+    } catch(err) {
+        console.error("Hiba történt az adatok exportálása során", err);
+        res.status(500).json({ message: "Hiba történt az exportálás során!", status: "error" });
+    }
+});
+
 
 
 
