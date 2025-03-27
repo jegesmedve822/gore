@@ -1,3 +1,5 @@
+let selectedBarcode = null;
+
 const stationMap = {
     12: ["piros_haz", "gyugy", "gore_kilato"],
     24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
@@ -12,6 +14,7 @@ const stationLabels = {
     harsas_puszta: "Hársas-puszta",
     bendek_puszta: "Béndek-puszta"
 };
+
 document.addEventListener("DOMContentLoaded", () => {
     const distanceSelect = document.getElementById("distanceSelect");
     const searchInput = document.getElementById("searchInput");
@@ -26,11 +29,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Első betöltés
     loadCheckpointData();
+
+    //automatikus frissülés
+    setInterval(() => {
+        const modal = document.getElementById("editModal");
+        const isModalOpen = modal && modal.style.display === "block";
+        if (!isModalOpen) {
+            loadCheckpointData();
+        } else {
+            showMessage("Módosítás folyamatban – frissítés szünetel", "error");
+        }
+    }, 10000);
 });
 
 function loadCheckpointData() {
     const distance = document.getElementById("distanceSelect").value;
     const stations = stationMap[distance];
+    const filterValue = document.getElementById("searchInput").value.toLowerCase();
 
     // Frissítjük a fejlécet
     const headerRow = document.getElementById("table-header");
@@ -50,7 +65,24 @@ function loadCheckpointData() {
         body: JSON.stringify({ distance })
     })
     .then(res => res.json())
-    .then(data => renderTableRows(data, stations))
+    .then(data => {
+        renderTableRows(data, stations);
+
+        //a filterezés megmaradjon
+        document.getElementById("searchInput").value = filterValue;
+        filterTable();
+
+        //ha volt sorkijelölés, az is
+        if (selectedBarcode) {
+            const rows = document.querySelectorAll("#table-body tr");
+            rows.forEach(row => {
+                if (row.cells[1].textContent === selectedBarcode) {
+                    row.classList.add("selected");
+                }
+            });
+        }
+        attachRowClickEvents();
+    })
     .catch(err => console.error("Hiba az adatok betöltésekor:", err));
 }
 
@@ -73,6 +105,16 @@ function renderTableRows(data, stations) {
             <td>${lastCheckpointLabel}</td>
         `;
 
+        if (hiker.barcode === selectedBarcode) {
+            row.classList.add("selected");
+        }
+
+        row.addEventListener("click", function () {
+            document.querySelectorAll("#table-body tr").forEach(r => r.classList.remove("selected"));
+            this.classList.add("selected");
+            selectedBarcode = hiker.barcode;
+        });
+
         tbody.appendChild(row);
     });
 }
@@ -92,6 +134,17 @@ function filterTable() {
     });
 }
 
+function showMessage(message, status) {
+    const messageElement = document.getElementById("message");
+    if (!messageElement) return;
+    messageElement.textContent = message;
+    messageElement.className = status;
+
+    setTimeout(() => {
+        messageElement.textContent = "";
+        messageElement.className = "";
+    }, 4000);
+}
 
 document.getElementById("export-csv").addEventListener("click", async function () {
     try {

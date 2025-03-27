@@ -103,16 +103,19 @@ button:hover {
     top: 0;
     width: 100%;
     height: 100%;
+    overflow-y: auto; /* 💡 görgetés engedélyezése, ha kell */
     background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px 0; /* biztonságos tér a felső és alsó szélén */
+    box-sizing: border-box;
 }
 
-/* Modal tartalom */
 .modal-content {
     background-color: white;
     padding: 20px;
     border-radius: 10px;
-    width: 400px;
-    margin: 15% auto;
+    width: 90%;
+    max-width: 500px;
+    margin: 40px auto;
     text-align: center;
     position: relative;
 }
