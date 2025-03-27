@@ -1,6 +1,6 @@
 const stationMap = {
     12: ["piros_haz", "gyugy", "gore_kilato"],
-    24: ["kishegy", "piros_haz", "gore_kilato"],
+    24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
     34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
 };
 
@@ -62,7 +62,7 @@ function renderTableRows(data, stations) {
     data.forEach(hiker => {
         const row = document.createElement("tr");
 
-        const lastCheckpointLabel = stationLabels[hiker.status] || hiker.status;
+        const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
 
         row.innerHTML = `
             <td>${hiker.name}</td>

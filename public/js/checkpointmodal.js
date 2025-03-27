@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const stationMap = {
         12: ["piros_haz", "gyugy", "gore_kilato"],
-        24: ["kishegy", "piros_haz", "gore_kilato"],
+        24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
     };
 

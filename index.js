@@ -378,7 +378,7 @@ app.get("/hikers", isViewer, async (req, res) => {
                     const hours = Math.floor(diffMs / (1000 * 60 * 60));
                     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-                    const completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
+                    completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
                 }
 
                 return { ...hiker, completionTime };
@@ -595,7 +595,7 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
 
     const stationColumns = {
         12: ["piros_haz", "gyugy", "gore_kilato"],
-        24: ["kishegy", "piros_haz", "gore_kilato"],
+        24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
     };
 
@@ -651,7 +651,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
 
     const stationColumns = {
         12: ["piros_haz", "gyugy", "gore_kilato"],
-        24: ["kishegy", "piros_haz", "gore_kilato"],
+        24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
     };
     
@@ -675,39 +675,39 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
         const result = await db.query(query, [distance]);
 
         const hikersWithStatus = result.rows.map(hiker => {
-            const hasDeparture = !!hiker.departure;
-            const hasArrival = !!hiker.arrival;
+            let completionTime = "Még nem indult el";
 
-            let status = "-";
+            const departureDate = hiker.departure ? new Date(hiker.departure) : null;
+            const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
 
-            if (!hasDeparture) {
-                status = "Még nem rajtolt";
-            } else if (hasArrival) {
-                status = "Megérkezett";
-            } else {
-                // Elindult, de még nincs érkezés – nézzük az állomásokat
-                let lastCheckpoint = null;
-                for (let i = selectedStations.length - 1; i >= 0; i--) {
+            //feladás ellenőrzése
+            const isDroppedOut = 
+                (departureDate && departureDate.toISOString().slice(0, 10) === "9999-12-31") ||
+                (arrivalDate && arrivalDate.toISOString().slice(0, 10) === "9999-12-31");
+            
+            if(isDroppedOut) {
+                completionTime = "Feladta";
+            } else if(departureDate && !arrivalDate) {
+                let lastCheckpoint = "Elindult";
+                for(let i = selectedStations.length -1; i >= 0; i--) {
                     const stationKey = selectedStations[i];
-                    if (hiker[stationKey]) {
-                        lastCheckpoint = stationKey;
+                    if(hiker[stationKey]) {
+                        lastCheckpoint = stationKey;;
                         break;
                     }
                 }
+                completionTime = lastCheckpoint;
 
-                if (lastCheckpoint) {
-                    status = lastCheckpoint; // kulcs, frontend feliratozza
-                } else {
-                    status = "Elindult";
-                }
+            } else if(departureDate && arrivalDate) {
+                const diffMs = arrivalDate - departureDate;
+                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
             }
 
-            return {
-                ...hiker,
-                status
-            };
+            return { ...hiker, completionTime };
         });
-
         return res.json(hikersWithStatus);
 
     } catch (err) {
@@ -732,7 +732,7 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
         // === 2. Checkpoints frissítése (dinamikusan)
         const stationColumns = {
             12: ["piros_haz", "gyugy", "gore_kilato"],
-            24: ["kishegy", "piros_haz", "gore_kilato"],
+            24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
             34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
         };
 
