@@ -146,6 +146,18 @@ function showMessage(message, status) {
     }, 4000);
 }
 
+//ez új
+function attachRowClickEvents() {
+    document.querySelectorAll("#table-body tr").forEach(row => {
+        row.addEventListener("click", function () {
+            document.querySelectorAll("#table-body tr").forEach(r => r.classList.remove("selected"));
+            this.classList.add("selected");
+            selectedBarcode = this.cells[1].textContent;
+        });
+    });
+}
+
+
 document.getElementById("export-csv").addEventListener("click", async function () {
     try {
         const response = await fetch("/export-csv-checkpoints");

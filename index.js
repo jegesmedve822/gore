@@ -719,15 +719,23 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
 app.post("/update-checkpoint-data", isUser, async (req, res) => {
     const { barcode, departure, arrival, stations, distance } = req.body;
 
+
     try {
         //hikers frissítése
-
         await db.query(
             `UPDATE hikers
             SET departure = $1, arrival = $2
             WHERE barcode = $3`,
             [departure || null, arrival || null, barcode]
         );
+
+        //itt jön a beszúrás ha kell
+        const checkRes = await db.query("SELECT 1 FROM checkpoints WHERE barcode = $1", [barcode]);
+
+        if (checkRes.rows.length === 0) {
+            await db.query("INSERT INTO checkpoints (barcode) VALUES ($1)", [barcode]);
+            console.log("Új sor beszúrva a checkpoints táblába (modalból).");
+        }
 
         // === 2. Checkpoints frissítése (dinamikusan)
         const stationColumns = {
@@ -748,10 +756,12 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
         let idx = 1;
 
         for (let station of allowedStations) {
-            if (station in stations) {
+            if (Object.hasOwn(stations, station)) {
                 updateParts.push(`${station} = $${idx}`);
                 updateValues.push(stations[station] || null);
                 idx++;
+            } else {
+                console.warn(`Állomás kimaradt a kliensoldalról: ${station}`);
             }
         }
 
@@ -764,10 +774,12 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
             `;
             updateValues.push(barcode);
 
-            await db.query(updateQuery, updateValues);
+
+            const updateRes = await db.query(updateQuery, updateValues);
         }
 
         res.json({ message: "Adatok sikeresen frissítve!", status: "success" });
+
     } catch (err) {
         console.error("Frissítési hiba:", err);
         res.status(500).json({ message: "Szerverhiba történt", status: "error" });

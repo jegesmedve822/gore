@@ -106,6 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
         stations.forEach(key => {
             const input = document.getElementById(`edit-${key}`);
             stationData[key] = input.value || null;
+            stationData[key] = input ? input.value : null;
         });
 
         try {
