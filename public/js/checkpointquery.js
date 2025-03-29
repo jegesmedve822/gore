@@ -36,8 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const isModalOpen = modal && modal.style.display === "block";
         if (!isModalOpen) {
             loadCheckpointData();
-        } else {
-            showMessage("Módosítás folyamatban – frissítés szünetel", "error");
         }
     }, 10000);
 });

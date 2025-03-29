@@ -9,8 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const isModalOpen = modal && modal.style.display === "block";
         if (!isModalOpen) {
             loadHikers();
-        } else {
-            showMessage("Módosítás folyamatban - frissítés szünetel", "error");
         }
     }, 10000);
 });
