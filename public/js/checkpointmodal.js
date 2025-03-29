@@ -92,22 +92,31 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${year}-${month}-${day}T${hour}:${minute}`;
     }
 
+    function toLocalISOString(datetimeLocalValue) {
+        if (!datetimeLocalValue) return null;
+        const localDate = new Date(datetimeLocalValue);
+        const offsetMs = localDate.getTimezoneOffset() * 60 * 1000; // pl. -60 perc → -3600000
+        const corrected = new Date(localDate.getTime() - offsetMs);
+        return corrected.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
+    }
+    
+
     editForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
         const name = document.getElementById("edit-name").value;
         const barcode = document.getElementById("edit-barcode").value;
-        const departure = document.getElementById("edit-departure").value || null;
-        const arrival = document.getElementById("edit-arrival").value || null;
+        const departure = toLocalISOString(document.getElementById("edit-departure").value) || null;
+        const arrival = toLocalISOString(document.getElementById("edit-arrival").value) || null;
         const distance = document.getElementById("distanceSelect").value;
         const stations = stationMap[distance];
 
         const stationData = {};
         stations.forEach(key => {
             const input = document.getElementById(`edit-${key}`);
-            stationData[key] = input.value || null;
-            stationData[key] = input ? input.value : null;
+            stationData[key] = toLocalISOString(input?.value) || null;
         });
+        
 
         try {
             const response = await fetch("/update-checkpoint-data", {
