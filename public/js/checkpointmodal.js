@@ -84,21 +84,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-    function parseDate(dateString) {
+    /*function parseDate(dateString) {
         if (!dateString || dateString === "—") return "";
         let parts = dateString.match(/(\d{4})\.\s*(\d{2})\.\s*(\d{2})\.\s*(\d{2}):(\d{2})/);
         if (!parts) return "";
         let [_, year, month, day, hour, minute] = parts;
         return `${year}-${month}-${day}T${hour}:${minute}`;
-    }
+    }*/
 
-    function toLocalISOString(datetimeLocalValue) {
+    function parseDate(cellText) {
+    if (!cellText || cellText === "—") return "";
+
+    const date = new Date(cellText);
+    if (isNaN(date.getTime())) return ""; // nem értelmezhető dátum
+
+    return date.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
+}
+
+
+/*    function toLocalISOString(datetimeLocalValue) {
         if (!datetimeLocalValue) return null;
         const localDate = new Date(datetimeLocalValue);
         const offsetMs = localDate.getTimezoneOffset() * 60 * 1000; // pl. -60 perc → -3600000
         const corrected = new Date(localDate.getTime() - offsetMs);
         return corrected.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
-    }
+    }*/
     
 
     editForm.addEventListener("submit", async function(event) {
@@ -106,15 +116,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const name = document.getElementById("edit-name").value;
         const barcode = document.getElementById("edit-barcode").value;
-        const departure = toLocalISOString(document.getElementById("edit-departure").value) || null;
-        const arrival = toLocalISOString(document.getElementById("edit-arrival").value) || null;
+        const departure = document.getElementById("edit-departure").value || null;
+        const arrival = document.getElementById("edit-arrival").value || null;
         const distance = document.getElementById("distanceSelect").value;
         const stations = stationMap[distance];
 
         const stationData = {};
         stations.forEach(key => {
             const input = document.getElementById(`edit-${key}`);
-            stationData[key] = toLocalISOString(input?.value) || null;
+            stationData[key] = input?.value || null;
         });
         
 
