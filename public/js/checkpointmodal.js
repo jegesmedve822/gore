@@ -59,8 +59,8 @@ document.addEventListener("DOMContentLoaded", function () {
         //adatok betöltése a kiválasztott sorból
         document.getElementById("edit-name").value = name;
         document.getElementById("edit-barcode").value = barcode;
-        document.getElementById("edit-departure").value = toLocalISOString(departure);
-        document.getElementById("edit-arrival").value = toLocalISOString(arrival);
+        document.getElementById("edit-departure").value = departure;
+        document.getElementById("edit-arrival").value = arrival;
 
         const stationFields = document.getElementById("station-fields");
         stationFields.innerHTML = "";
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
             input.type = "datetime-local";
             input.name = stationKey;
             input.id = `edit-${stationKey}`;
-            input.value = toLocalISOString(parseDate(cells[3 + i].textContent));
+            input.value = parseDate(cells[3 + i].textContent);
 
             stationFields.appendChild(label);
             stationFields.appendChild(input);
