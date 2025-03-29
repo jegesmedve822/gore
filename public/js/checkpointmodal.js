@@ -92,14 +92,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${year}-${month}-${day}T${hour}:${minute}`;
     }*/
 
-    function parseDate(cellText) {
-    if (!cellText || cellText === "—") return "";
-
-    const date = new Date(cellText);
-    if (isNaN(date.getTime())) return ""; // nem értelmezhető dátum
-
-    return date.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
-}
+    function parseDate(dateString) {
+        if (!dateString || dateString === "—") return "";
+        let parts = dateString.match(/(\d{4})\.\s*(\d{2})\.\s*(\d{2})\.\s*(\d{1,2}):(\d{2})/);
+        if (!parts) return "";
+        let [_, year, month, day, hour, minute] = parts;
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute}`;
+    }
+        
 
 
 /*    function toLocalISOString(datetimeLocalValue) {
