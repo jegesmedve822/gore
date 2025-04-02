@@ -304,8 +304,8 @@ app.post("/recordtimestamp", isStarter, async (req, res) => {
                 const dateDiff = (currentDate - new Date(departureDate))/(1000*60);
 
                 //ha x perc nem telt el, ne illessze be a rekordot
-                if(dateDiff < 1)  {
-                    return res.json({ message: "Nem telt el x perc az elindulás óta, ezért az érkezési időpont NEM került beillesztésre!", status: "error" });
+                if(dateDiff < 15)  {
+                    return res.json({ message: "Nem telt el 15 perc az elindulás óta, ezért az érkezési időpont NEM került beillesztésre!", status: "error" });
                 } else {
                     //Arrival dátum beillesztése az adatbázisba
                     await db.query("UPDATE hikers SET arrival = $1 WHERE barcode = $2",
@@ -357,6 +357,13 @@ app.get("/hikers", isViewer, async (req, res) => {
     if(req.isAuthenticated()) {
         try {
             const result = await db.query("SELECT * FROM hikers ORDER BY distance, id ASC");
+            const checkpointResult = await db.query("SELECT * FROM checkpoints");
+
+            const stationColumns = {
+                12: ["piros_haz", "gyugy", "gore_kilato"],
+                24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
+                34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
+            };
 
             const hikersWithCompletionTime = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
@@ -372,7 +379,21 @@ app.get("/hikers", isViewer, async (req, res) => {
                 if (isDroppedOut) {
                     completionTime = "Feladta";
                 } else if (departureDate && !arrivalDate) {
-                    completionTime = "Még nem érkezett be";
+                    //itt adjuk meg az állomás logikáját
+                    const selectedStations = stationColumns[hiker.distance] || [];
+                    const checkpointRow = checkpointResult.rows.find(c => c.barcode === hiker.barcode);
+
+                    if(!checkpointRow) {
+                        completionTime = "Elindult";
+                    } else {
+                        for (let i = selectedStations.length -1; i >= 0; i--) {
+                            const stationKey = selectedStations[i];
+                            if (checkpointRow[stationKey]) {
+                                completionTime = stationKey;
+                                break;
+                            }
+                        }
+                    }
                 } else if (departureDate && arrivalDate) {
                     const diffMs = arrivalDate - departureDate;
                     const hours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -615,7 +636,7 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
         const allowedStations = stationColumns[hikerDistance];
 
         if(!allowedStations.includes(column)) {
-            return res.json({ message: `Ez az állomás (${column}) nem része a ${hikerDistance} km-es távnak!`,
+            return res.json({ message: `Ez az állomás nem része a ${hikerDistance} km-es távnak!`,
             status: "error" });
         }
 
@@ -625,7 +646,7 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
             // Új rekord beszúrása
             const insertQuery = `INSERT INTO checkpoints (barcode, ${column}) VALUES ($1, $2)`;
             await db.query(insertQuery, [input, timestamp]);
-            return res.json({ message: "Az érkezési idő sikeresen beillesztve (új rekord)", status: "success" });
+            return res.json({ message: "Az érkezési idő sikeresen beillesztve!", status: "success" });
         }
 
         const existingValue = checkpointData.rows[0][column];

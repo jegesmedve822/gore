@@ -1,5 +1,20 @@
 let selectedHikerId = null;
 
+const stationMap = {
+    12: ["piros_haz", "gyugy", "gore_kilato"],
+    24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
+    34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
+};
+
+const stationLabels = {
+    piros_haz: "Piros ház",
+    gyugy: "Gyugy",
+    gore_kilato: "Göre-kilátó",
+    kishegy: "Kishegy",
+    harsas_puszta: "Hársas-puszta",
+    bendek_puszta: "Béndek-puszta"
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     loadHikers();
     document.getElementById("searchInput").addEventListener("keyup", filterTable);
@@ -43,17 +58,19 @@ function renderTable(hikers) {
 
     tbody.innerHTML = "";
 
-    hikers.forEach(hiker => {
+    hikers.forEach((hiker, index) => {
         let row = document.createElement("tr");
 
+        const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
+
         row.innerHTML = `
-            <td>${hiker.id}</td>
+            <td>${index + 1}</td>
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
             <td>${hiker.distance}</td>
             <td>${hiker.departure ? new Date(hiker.departure).toLocaleString("hu-HU") : "—"}</td>
             <td>${hiker.arrival ? new Date(hiker.arrival).toLocaleString("hu-HU") : "—"}</td>
-            <td>${hiker.completionTime}</td>
+            <td>${lastCheckpointLabel}</td>
         `;
 
         tbody.appendChild(row);
