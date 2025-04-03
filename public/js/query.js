@@ -47,6 +47,16 @@ function loadHikers() {
         .catch(err => console.error("Hiba az adatok betöltésekor:", err));
 }
 
+function formatTimeOnly(dateString) {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("hu-HU", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
+}
+
 // Táblázat megjelenítése (NEM szerkeszthető!)
 function renderTable(hikers) {
     let tbody = document.querySelector("#hikersTable tbody");
@@ -60,6 +70,13 @@ function renderTable(hikers) {
 
     hikers.forEach((hiker, index) => {
         let row = document.createElement("tr");
+        row.setAttribute("data-id", hiker.id);
+
+
+        //nem tudom mi az értelme
+        row.setAttribute("data-departure-date", hiker.departure ? new Date(hiker.departure).toISOString().split("T")[0] : "");
+        row.setAttribute("data-arrival-date", hiker.arrival ? new Date(hiker.arrival).toISOString().split("T")[0] : "");
+        //eddig nem tudtam
 
         const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
 
@@ -68,8 +85,8 @@ function renderTable(hikers) {
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
             <td>${hiker.distance}</td>
-            <td>${hiker.departure ? new Date(hiker.departure).toLocaleString("hu-HU") : "—"}</td>
-            <td>${hiker.arrival ? new Date(hiker.arrival).toLocaleString("hu-HU") : "—"}</td>
+            <td>${formatTimeOnly(hiker.departure)}</td>
+            <td>${formatTimeOnly(hiker.arrival)}</td>
             <td>${lastCheckpointLabel}</td>
         `;
 

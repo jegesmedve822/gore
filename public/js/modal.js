@@ -32,8 +32,19 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        //ezt sem tudom
+        const departureDate = selectedRow.getAttribute("data-departure-date");
+        const arrivalDate = selectedRow.getAttribute("data-arrival-date");
+
+        document.getElementById("original-departure-date").value = departureDate;
+        document.getElementById("original-arrival-date").value = arrivalDate;
+        //idáig
+
+
         //adatok betöltése a kiválasztott sorból
-        document.getElementById("edit-id").value = selectedRow.cells[0].textContent;
+        //document.getElementById("edit-id").value = selectedRow.cells[0].textContent;
+        const id = selectedRow.getAttribute("data-id");
+        document.getElementById("edit-id").value = id;
         document.getElementById("edit-name").value = selectedRow.cells[1].textContent;
         document.getElementById("edit-barcode").value = selectedRow.cells[2].textContent;
         document.getElementById("edit-distance").value = selectedRow.cells[3].textContent;
@@ -48,19 +59,24 @@ document.addEventListener("DOMContentLoaded", function () {
             let [_, year, month, day, hour, minute] = parts;
             return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute}`;
         }
+
+        function parseTimeOnly(timeString) {
+            if (!timeString || timeString === "—") return "";
+            const [hour, minute, second] = timeString.split(":");
+            return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${(second || "00").padStart(2, "0")}`;
+        }
         
 
-
-        let departure = parseDate(selectedRow.cells[4].textContent);
-        let arrival = parseDate(selectedRow.cells[5].textContent);
+        let departure = parseTimeOnly(selectedRow.cells[4].textContent);
+        let arrival = parseTimeOnly(selectedRow.cells[5].textContent);
 
 
 
         document.getElementById("edit-departure").value = departure;
-        document.getElementById("original-departure").value = departure;
+        //document.getElementById("original-departure-date").value = departure;
 
         document.getElementById("edit-arrival").value = arrival;
-        document.getElementById("original-arrival").value = arrival;
+        //document.getElementById("original-arrival-date").value = arrival;
 
         modal.style.display = "block";
     });
@@ -80,15 +96,20 @@ document.addEventListener("DOMContentLoaded", function () {
         const barcode = document.getElementById("edit-barcode").value;
 
 
-        let departure = document.getElementById("edit-departure").value;
-        let arrival = document.getElementById("edit-arrival").value;
+        //dátum idő összefűzése
+        let departureDate = document.getElementById("original-departure-date").value;
+        let departureTime = document.getElementById("edit-departure").value;
+        let arrivalDate = document.getElementById("original-arrival-date").value;
+        let arrivalTime = document.getElementById("edit-arrival").value;
 
-        if (!departure) {
-            departure = document.getElementById("original-departure").value || null;
-        }
-        if (!arrival) {
-            arrival = document.getElementById("original-arrival").value || null;
-        }
+        let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
+        let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+
+        //debug
+        console.log({ departureDate, departureTime, departure });
+        console.log({ arrivalDate, arrivalTime, arrival });
+
+
         try {
             const response = await fetch("/update", {
                 method: "POST",

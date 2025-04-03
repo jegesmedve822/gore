@@ -431,11 +431,13 @@ app.post("/update", isUser, async (req, res) => {
 
             await db.query(
                 "UPDATE hikers SET name = $1, barcode = $2, distance = $3, departure = $4, arrival = $5 WHERE id = $6",
-                [name, barcode, distance, departure || null, arrival ||null, id]
+                [name, barcode, distance, safeDeparture || null, safeArrival ||null, id]
             );
             res.json({ message: "Sikeresen frissítve!", status: "success" });
         } catch(err) {
             res.status(500).json({ message: "Hiba történt az adatmódosítás során.", status: "error" });
+            console.error("UPDATE ERROR:", err);
+
         }
     } else {
         res.redirect("/");

@@ -42,12 +42,12 @@
                     <input type="text" id="edit-barcode" required>
 
                     <label for="edit-departure">Indulás:</label>
-                    <input type="datetime-local" id="edit-departure">
-                    <input type="hidden" id="original-departure">
+                    <input type="time" id="edit-departure" step="1">
+                    <input type="hidden" id="original-departure-date">
 
                     <label for="edit-arrival">Érkezés:</label>
-                    <input type="datetime-local" id="edit-arrival">
-                    <input type="hidden" id="original-arrival">
+                    <input type="time" id="edit-arrival" step="1">
+                    <input type="hidden" id="original-arrival-date">
 
                     <button type="submit">Mentés</button>
                 </form>
