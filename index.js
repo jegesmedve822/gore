@@ -677,66 +677,127 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
         24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
     };
-    
-    const selectedStations = stationColumns[distance];
-    const selectedColumns = selectedStations.join(", ");
 
+    if(!isNaN(distance)) {
+        const numericDistance = parseInt(distance);
+        const selectedStations = stationColumns[distance];
+        const selectedColumns = selectedStations.join(", ");
+
+        try {
+            const query = `
+                SELECT
+                    h.name,
+                    h.barcode,
+                    h.departure,
+                    h.arrival,
+                    ${selectedColumns}
+                FROM hikers h
+                LEFT JOIN checkpoints c
+                ON h.barcode = c.barcode
+                WHERE h.distance = $1
+            `;
+    
+            const result = await db.query(query, [distance]);
+    
+            const hikersWithStatus = result.rows.map(hiker => {
+                let completionTime = "Még nem indult el";
+    
+                const departureDate = hiker.departure ? new Date(hiker.departure) : null;
+                const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
+    
+                //feladás ellenőrzése
+                const isDroppedOut = 
+                    (departureDate && departureDate.toISOString().slice(0, 10) === "9999-12-31") ||
+                    (arrivalDate && arrivalDate.toISOString().slice(0, 10) === "9999-12-31");
+                
+                if(isDroppedOut) {
+                    completionTime = "Feladta";
+                } else if(departureDate && !arrivalDate) {
+                    let lastCheckpoint = "Elindult";
+                    for(let i = selectedStations.length -1; i >= 0; i--) {
+                        const stationKey = selectedStations[i];
+                        if(hiker[stationKey]) {
+                            lastCheckpoint = stationKey;;
+                            break;
+                        }
+                    }
+                    completionTime = lastCheckpoint;
+    
+                } else if(departureDate && arrivalDate) {
+                    const diffMs = arrivalDate - departureDate;
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                    completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
+                }
+    
+                return { ...hiker, completionTime };
+            });
+            return res.json(hikersWithStatus);
+    
+        } catch (err) {
+            console.error("Lekérdezési hiba:", err);
+            return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
+        }
+    }
     try {
+        const station = distance;
+
+        const validDistance = Object.entries(stationColumns)
+            .filter(([_, stations])=> stations.includes(station))
+            .map(([dist]) => parseInt(dist));
+
+        if(validDistance.length === 0) {
+            return res.json([]);
+        }
+
+        const safeStation = `"${station}"`;
+
         const query = `
             SELECT
-                h.name,
-                h.barcode,
-                h.departure,
-                h.arrival,
-                ${selectedColumns}
+                h.name
+                ,h.barcode
+                ,h.departure
+                ,h.arrival
+                ,c.${safeStation}
             FROM hikers h
             LEFT JOIN checkpoints c
             ON h.barcode = c.barcode
-            WHERE h.distance = $1
+            WHERE h.distance = ANY($1)
         `;
 
-        const result = await db.query(query, [distance]);
+        const result = await db.query(query, [validDistance]);
 
-        const hikersWithStatus = result.rows.map(hiker => {
-            let completionTime = "Még nem indult el";
+        const response = result.rows.map(hiker => {
+            const hasDeparted = hiker.departure && hiker.departure.toISOString().slice(0, 10) !== "9999-12-31";
+            const checkpointTime = hiker[station];
 
-            const departureDate = hiker.departure ? new Date(hiker.departure) : null;
-            const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
-
-            //feladás ellenőrzése
-            const isDroppedOut = 
-                (departureDate && departureDate.toISOString().slice(0, 10) === "9999-12-31") ||
-                (arrivalDate && arrivalDate.toISOString().slice(0, 10) === "9999-12-31");
-            
-            if(isDroppedOut) {
-                completionTime = "Feladta";
-            } else if(departureDate && !arrivalDate) {
-                let lastCheckpoint = "Elindult";
-                for(let i = selectedStations.length -1; i >= 0; i--) {
-                    const stationKey = selectedStations[i];
-                    if(hiker[stationKey]) {
-                        lastCheckpoint = stationKey;;
-                        break;
-                    }
-                }
-                completionTime = lastCheckpoint;
-
-            } else if(departureDate && arrivalDate) {
-                const diffMs = arrivalDate - departureDate;
-                const hours = Math.floor(diffMs / (1000 * 60 * 60));
-                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-                completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
+            let status = "Nem indult el";
+            if(hasDeparted && !checkpointTime) {
+                status = "Várjuk";
+            }
+            if(checkpointTime) {
+                const time = new Date(checkpointTime).toLocaleTimeString("hu-HU");
+                status = time;
             }
 
-            return { ...hiker, completionTime };
+            return {
+                name: hiker.name,
+                barcode: hiker.barcode,
+                departure: hiker.departure,
+                arrival: hiker.arrival,
+                [station]: hiker[station],
+                completionTime: status
+            };
         });
-        return res.json(hikersWithStatus);
+
+        return res.json(response);
 
     } catch (err) {
-        console.error("Lekérdezési hiba:", err);
+        console.error("Állomás lekérdezési hiba:", err);
         return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
     }
+    
 });
 
 app.post("/update-checkpoint-data", isUser, async (req, res) => {

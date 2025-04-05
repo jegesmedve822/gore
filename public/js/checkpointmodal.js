@@ -49,7 +49,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         const cells = selectedRow.cells;
         const distance = document.getElementById("distanceSelect").value;
-        const stations = stationMap[distance];
+        const stations = isNaN(distance) ? [distance] : stationMap[distance];
+
 
         const name = cells[0].textContent;
         const barcode = cells[1].textContent;
@@ -84,13 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-    /*function parseDate(dateString) {
-        if (!dateString || dateString === "—") return "";
-        let parts = dateString.match(/(\d{4})\.\s*(\d{2})\.\s*(\d{2})\.\s*(\d{2}):(\d{2})/);
-        if (!parts) return "";
-        let [_, year, month, day, hour, minute] = parts;
-        return `${year}-${month}-${day}T${hour}:${minute}`;
-    }*/
 
     function parseDate(dateString) {
         if (!dateString || dateString === "—") return "";
@@ -100,15 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute}`;
     }
         
-
-
-/*    function toLocalISOString(datetimeLocalValue) {
-        if (!datetimeLocalValue) return null;
-        const localDate = new Date(datetimeLocalValue);
-        const offsetMs = localDate.getTimezoneOffset() * 60 * 1000; // pl. -60 perc → -3600000
-        const corrected = new Date(localDate.getTime() - offsetMs);
-        return corrected.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
-    }*/
     
 
     editForm.addEventListener("submit", async function(event) {

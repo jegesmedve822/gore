@@ -42,7 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadCheckpointData() {
     const distance = document.getElementById("distanceSelect").value;
-    const stations = stationMap[distance];
+    const isDistance = !isNaN(distance);
+    const stations = isDistance ? stationMap[distance] : [distance];
     const filterValue = document.getElementById("searchInput").value.toLowerCase();
 
     // Frissítjük a fejlécet
