@@ -696,8 +696,19 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 ON h.barcode = c.barcode
                 WHERE h.distance = $1
             `;
+
     
             const result = await db.query(query, [distance]);
+            const hikerSatistics = await db.query(
+                `SELECT
+                    COUNT(*) FILTER (WHERE distance = $1 AND arrival IS NOT NULL) AS hikers_arrived
+                    ,COUNT(*) FILTER (WHERE distance = $1) AS hikers_total
+                FROM
+                    hikers
+                    `,[distance]
+            );
+            const hikers_arrived = hikerSatistics.rows[0].hikers_arrived;
+            const hikers_total = hikerSatistics.rows[0].hikers_total;
     
             const hikersWithStatus = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
@@ -733,69 +744,97 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
     
                 return { ...hiker, completionTime };
             });
-            return res.json(hikersWithStatus);
+            return res.json({
+                hikers: hikersWithStatus,
+                hikers_arrived,
+                hikers_total
+        });
     
         } catch (err) {
             console.error("Lekérdezési hiba:", err);
             return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
         }
-    }
-    try {
-        const station = distance;
+    } else {
+        try {
+            const station = distance;
 
-        const validDistance = Object.entries(stationColumns)
-            .filter(([_, stations])=> stations.includes(station))
-            .map(([dist]) => parseInt(dist));
+            const validDistance = Object.entries(stationColumns)
+                .filter(([_, stations])=> stations.includes(station))
+                .map(([dist]) => parseInt(dist));
 
-        if(validDistance.length === 0) {
-            return res.json([]);
-        }
-
-        const safeStation = `"${station}"`;
-
-        const query = `
-            SELECT
-                h.name
-                ,h.barcode
-                ,h.departure
-                ,h.arrival
-                ,c.${safeStation}
-            FROM hikers h
-            LEFT JOIN checkpoints c
-            ON h.barcode = c.barcode
-            WHERE h.distance = ANY($1)
-        `;
-
-        const result = await db.query(query, [validDistance]);
-
-        const response = result.rows.map(hiker => {
-            const hasDeparted = hiker.departure && hiker.departure.toISOString().slice(0, 10) !== "9999-12-31";
-            const checkpointTime = hiker[station];
-
-            let status = "Nem indult el";
-            if(hasDeparted && !checkpointTime) {
-                status = "Várjuk";
-            }
-            if(checkpointTime) {
-                const time = new Date(checkpointTime).toLocaleTimeString("hu-HU");
-                status = time;
+            if(validDistance.length === 0) {
+                return res.json([]);
             }
 
-            return {
-                name: hiker.name,
-                barcode: hiker.barcode,
-                departure: hiker.departure,
-                arrival: hiker.arrival,
-                [station]: hiker[station],
-                completionTime: status
+            const safeStation = `"${station}"`;
+
+            const query = `
+                SELECT
+                    h.name
+                    ,h.barcode
+                    ,h.departure
+                    ,h.arrival
+                    ,c.${safeStation}
+                FROM hikers h
+                LEFT JOIN checkpoints c
+                ON h.barcode = c.barcode
+                WHERE h.distance = ANY($1)
+            `;
+
+            const result = await db.query(query, [validDistance]);
+
+            const response = result.rows.map(hiker => {
+                const hasDeparted = hiker.departure && hiker.departure.toISOString().slice(0, 10) !== "9999-12-31";
+                const checkpointTime = hiker[station];
+
+                let status = "Nem indult el";
+                if(hasDeparted && !checkpointTime) {
+                    status = "Várjuk";
+                }
+                if(checkpointTime) {
+                    const time = new Date(checkpointTime).toLocaleTimeString("hu-HU");
+                    status = time;
+                }
+
+                return {
+                    name: hiker.name,
+                    barcode: hiker.barcode,
+                    departure: hiker.departure,
+                    arrival: hiker.arrival,
+                    [station]: hiker[station],
+                    completionTime: status
+                };
+            });
+
+            const statsQuery = `
+                SELECT
+                    COUNT(*) FILTER (
+                        WHERE h.distance = ANY($1)
+                    ) AS hikers_total,
+                    COUNT(*) FILTER (
+                        WHERE h.distance = ANY($1)
+                        AND c.${station} IS NOT NULL
+                    ) AS hikers_arrived
+                FROM hikers h
+                LEFT JOIN checkpoints c ON h.barcode = c.barcode    
+            `;
+
+            const statsResult = await db.query(statsQuery, [validDistance]);
+            const hikerSatistics = {
+                hikers_total : statsResult.rows[0].hikers_total,
+                hikers_arrived : statsResult.rows[0].hikers_arrived
             };
-        });
 
-        return res.json(response);
+            return res.json({
+                hikers: response,
+                hikers_total: hikerSatistics.hikers_total,
+                hikers_arrived: hikerSatistics.hikers_arrived
+            });
 
-    } catch (err) {
-        console.error("Állomás lekérdezési hiba:", err);
-        return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
+        } catch (err) {
+            console.error("Állomás lekérdezési hiba:", err);
+            return res.status(500).json({ message: "Szerverhiba történt", status: "error" });
+        }
     }
     
 });

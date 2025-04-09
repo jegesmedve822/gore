@@ -65,7 +65,19 @@ function loadCheckpointData() {
     })
     .then(res => res.json())
     .then(data => {
-        renderTableRows(data, stations);
+        const hikers = data.hikers;
+        const arrived = data.hikers_arrived;
+        const total = data.hikers_total;
+
+        //megjelenítés
+        const statsEl = document.getElementById("hikerStats");
+        if (statsEl && arrived !== null && total !== null) {
+            statsEl.textContent = `Beérkezettek: ${arrived} / ${total}`;
+        } else if (statsEl) {
+            statsEl.textContent = "";
+        }
+
+        renderTableRows(hikers, stations);
 
         //a filterezés megmaradjon
         document.getElementById("searchInput").value = filterValue;
