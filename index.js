@@ -358,6 +358,17 @@ app.get("/hikers", isViewer, async (req, res) => {
         try {
             const result = await db.query("SELECT * FROM hikers ORDER BY distance, id ASC");
             const checkpointResult = await db.query("SELECT * FROM checkpoints");
+            const hikerSatistics = await db.query(
+                `SELECT
+                    COUNT(*) FILTER (WHERE arrival IS NOT NULL) AS hikers_arrived
+                    ,COUNT(*) AS hikers_total
+                FROM
+                    hikers
+                `
+            );
+
+            const hikersArrived = hikerSatistics.rows[0].hikers_arrived;
+            const hikersTotal = hikerSatistics.rows[0].hikers_total;
 
             const stationColumns = {
                 12: ["piros_haz", "gyugy", "gore_kilato"],
@@ -405,7 +416,12 @@ app.get("/hikers", isViewer, async (req, res) => {
                 return { ...hiker, completionTime };
             });
 
-            res.json(hikersWithCompletionTime);
+            res.json({
+                hikers: hikersWithCompletionTime,
+                hikersArrived,
+                hikersTotal
+            });
+
         } catch (err) {
             res.status(500).json({ message: "Hiba az adatok betöltésekor.", status: "error" });
         };
@@ -707,8 +723,8 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     hikers
                     `,[distance]
             );
-            const hikers_arrived = hikerSatistics.rows[0].hikers_arrived;
-            const hikers_total = hikerSatistics.rows[0].hikers_total;
+            const hikersArrived = hikerSatistics.rows[0].hikers_arrived;
+            const hikersTotal = hikerSatistics.rows[0].hikers_total;
     
             const hikersWithStatus = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
@@ -746,8 +762,8 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
             });
             return res.json({
                 hikers: hikersWithStatus,
-                hikers_arrived,
-                hikers_total
+                hikersArrived,
+                hikersTotal
         });
     
         } catch (err) {

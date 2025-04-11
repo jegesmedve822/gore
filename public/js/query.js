@@ -43,7 +43,15 @@ function showMessage(message, status) {
 function loadHikers() {
     fetch("/hikers")
         .then(response => response.json())
-        .then(data => renderTable(data))
+        .then(data => {
+            const { hikers, hikersArrived, hikersTotal } = data;
+
+            const stats = document.getElementById("hikerStats");
+            if(stats) {
+                stats.textContent = `Beérkezettek: ${hikersArrived} / ${hikersTotal}`;
+            }
+            renderTable(hikers);
+        })
         .catch(err => console.error("Hiba az adatok betöltésekor:", err));
 }
 
