@@ -836,15 +836,15 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
             `;
 
             const statsResult = await db.query(statsQuery, [validDistance]);
-            const hikerSatistics = {
-                hikers_total : statsResult.rows[0].hikers_total,
-                hikers_arrived : statsResult.rows[0].hikers_arrived
-            };
+            
+            const hikersTotal = statsResult.rows[0].hikers_total;
+            const hikersArrived = statsResult.rows[0].hikers_arrived;
+
 
             return res.json({
                 hikers: response,
-                hikers_total: hikerSatistics.hikers_total,
-                hikers_arrived: hikerSatistics.hikers_arrived
+                hikersTotal,
+                hikersArrived
             });
 
         } catch (err) {
@@ -883,7 +883,15 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
             34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
         };
 
-        const allowedStations = stationColumns[distance];
+        let allowedStations;
+
+        if(!isNaN(distance)) {
+            allowedStations = stationColumns[distance];
+        } else {
+            allowedStations = [distance];
+        }
+
+        //const allowedStations = stationColumns[distance];
 
         if (!allowedStations) {
             return res.status(400).json({ message: "Érvénytelen táv!", status: "error" });

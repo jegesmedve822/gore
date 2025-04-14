@@ -66,8 +66,8 @@ function loadCheckpointData() {
     .then(res => res.json())
     .then(data => {
         const hikers = data.hikers;
-        const arrived = data.hikers_arrived;
-        const total = data.hikers_total;
+        const arrived = data.hikersArrived;
+        const total = data.hikersTotal;
 
         //megjelenítés
         const statsEl = document.getElementById("hikerStats");

@@ -102,10 +102,23 @@ document.addEventListener("DOMContentLoaded", function () {
         let arrivalDate = document.getElementById("original-arrival-date").value;
         let arrivalTime = document.getElementById("edit-arrival").value;
 
+        //let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
+        //let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+
+        //a fentit szedtük ki, ezt rakjuk le
+        const today = new Date().toISOString().split("T")[0];
+
+        if (!departureDate && departureTime) {
+            departureDate = today;
+        }
+        if (!arrivalDate && arrivalTime) {
+            arrivalDate = today;
+        }
+
         let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
         let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
 
-        //debug
+        console.log("Dátum fallback működik-e:");
         console.log({ departureDate, departureTime, departure });
         console.log({ arrivalDate, arrivalTime, arrival });
 

@@ -97,10 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         modal.style.display = "block";
 
-        console.log("DEPARTURE RAW:", departureRaw); // pl. "2024. 04. 13. 12:10"
-        console.log("PARSED TIME:", departureTime);  // pl. "12:10:00"
-
-
     });
 
 
@@ -152,12 +148,23 @@ document.addEventListener("DOMContentLoaded", function () {
         const name = document.getElementById("edit-name").value;
         const barcode = document.getElementById("edit-barcode").value;
         const distance = document.getElementById("distanceSelect").value;
-        const stations = stationMap[distance];
+        const stations = isNaN(distance) ? [distance] : stationMap[distance];
 
-        const departureDate = document.getElementById("original-departure-date").value;
+
+
+        let departureDate = document.getElementById("original-departure-date").value;
         const departureTime = document.getElementById("edit-departure").value;
-        const arrivalDate = document.getElementById("original-arrival-date").value;
+        let arrivalDate = document.getElementById("original-arrival-date").value;
         const arrivalTime = document.getElementById("edit-arrival").value;
+
+        // Ha nincs dátum, használjuk a mai napot
+        const today = new Date().toISOString().split("T")[0];
+        if (!departureDate && departureTime) {
+            departureDate = today;
+        }
+        if (!arrivalDate && arrivalTime) {
+            arrivalDate = today;
+        }
 
         const departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
         const arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
