@@ -105,6 +105,10 @@ function renderTableRows(data, stations) {
     data.forEach(hiker => {
         const row = document.createElement("tr");
 
+        row.setAttribute("data-departure-date", hiker.departure ? new Date(hiker.departure).toISOString().split("T")[0] : "");
+        row.setAttribute("data-arrival-date", hiker.arrival ? new Date(hiker.arrival).toISOString().split("T")[0] : "");
+
+
         const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
 
         row.innerHTML = `
@@ -130,9 +134,21 @@ function renderTableRows(data, stations) {
     });
 }
 
-function formatDate(dateString) {
+//ezt lecseréltük
+/*function formatDate(dateString) {
     return dateString ? new Date(dateString).toLocaleString("hu-HU") : "—";
+}*/
+
+function formatDate(dateString) {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("hu-HU", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
 }
+
 
 function filterTable() {
     const filter = document.getElementById("searchInput").value.toLowerCase();

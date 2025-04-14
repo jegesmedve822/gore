@@ -54,14 +54,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const name = cells[0].textContent;
         const barcode = cells[1].textContent;
-        const departure = parseDate(cells[2].textContent);
-        const arrival = parseDate(cells[3 + stations.length].textContent);
+
+        const departureRaw = cells[2].textContent;
+        const arrivalRaw = cells[3 + stations.length].textContent;
+
+
+
+        const departureDate = selectedRow.getAttribute("data-departure-date") || "";
+        const arrivalDate = selectedRow.getAttribute("data-arrival-date") || "";
+
+        console.log("departureDate:", departureDate);
+        const departureTime = parseTimeOnly(departureRaw);
+        const arrivalTime = parseTimeOnly(arrivalRaw);
+        console.log("departureTime:", departureTime);
 
         //adatok betöltése a kiválasztott sorból
         document.getElementById("edit-name").value = name;
         document.getElementById("edit-barcode").value = barcode;
-        document.getElementById("edit-departure").value = departure;
-        document.getElementById("edit-arrival").value = arrival;
+        document.getElementById("edit-departure").value = departureTime;
+        document.getElementById("edit-arrival").value = arrivalTime;
+        document.getElementById("original-departure-date").value = departureDate;
+        document.getElementById("original-arrival-date").value = arrivalDate;
 
         const stationFields = document.getElementById("station-fields");
         stationFields.innerHTML = "";
@@ -72,10 +85,11 @@ document.addEventListener("DOMContentLoaded", function () {
             label.setAttribute("for", `edit-${stationKey}`);
 
             const input = document.createElement("input");
-            input.type = "datetime-local";
+            input.type = "time";
             input.name = stationKey;
             input.id = `edit-${stationKey}`;
-            input.value = parseDate(cells[3 + i].textContent);
+            input.step = "1";
+            input.value = parseTimeOnly(cells[3 + i].textContent);
 
             stationFields.appendChild(label);
             stationFields.appendChild(input);
@@ -83,33 +97,77 @@ document.addEventListener("DOMContentLoaded", function () {
 
         modal.style.display = "block";
 
+        console.log("DEPARTURE RAW:", departureRaw); // pl. "2024. 04. 13. 12:10"
+        console.log("PARSED TIME:", departureTime);  // pl. "12:10:00"
+
+
     });
 
 
-    function parseDate(dateString) {
-        if (!dateString || dateString === "—") return "";
-        let parts = dateString.match(/(\d{4})\.\s*(\d{2})\.\s*(\d{2})\.\s*(\d{1,2}):(\d{2})/);
-        if (!parts) return "";
-        let [_, year, month, day, hour, minute] = parts;
-        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute}`;
-    }
+        function getDateOnly(dateString) {
+            if (!dateString || dateString === "—") return "";
         
-    
+            // ISO formátum (pl. 2024-04-12T23:59:59)
+            if (dateString.includes("T")) {
+                return dateString.split("T")[0];
+            }
+        
+            // Formátum: "2024. 04. 12. 23:59:59"
+            const parts = dateString.match(/(\d{4})\.\s*(\d{2})\.\s*(\d{2})/);
+            if (!parts) return "";
+        
+            const [_, year, month, day] = parts;
+            return `${year}-${month}-${day}`;
+        }
+        
+        function parseTimeOnly(dateString) {
+            if (!dateString || dateString === "—") return "";
+        
+            // ISO formátum (pl. "2024-04-12T23:59:59")
+            if (dateString.includes("T")) {
+                const [_, timePart] = dateString.split("T");
+                const [hour, minute, second = "00"] = timePart.split(":");
+                return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
+            }
+        
+            // Formátum: "2024. 04. 12. 23:59:59"
+            const match = dateString.match(/\d{4}\.\s*\d{2}\.\s*\d{2}\.\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+            if (match) {
+                const [_, hour, minute, second = "00"] = match;
+                return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
+            }
+        
+            // Plain time string (pl. "23:40:07")
+            const [hour, minute, second = "00"] = dateString.split(":");
+            return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
+        }
+        
+
+        
 
     editForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
+
         const name = document.getElementById("edit-name").value;
         const barcode = document.getElementById("edit-barcode").value;
-        const departure = document.getElementById("edit-departure").value || null;
-        const arrival = document.getElementById("edit-arrival").value || null;
         const distance = document.getElementById("distanceSelect").value;
         const stations = stationMap[distance];
+
+        const departureDate = document.getElementById("original-departure-date").value;
+        const departureTime = document.getElementById("edit-departure").value;
+        const arrivalDate = document.getElementById("original-arrival-date").value;
+        const arrivalTime = document.getElementById("edit-arrival").value;
+
+        const departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
+        const arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+
 
         const stationData = {};
         stations.forEach(key => {
             const input = document.getElementById(`edit-${key}`);
-            stationData[key] = input?.value || null;
+            const time = input?.value || null;
+            stationData[key] = (time && departureDate) ? `${departureDate}T${time}` : null;
         });
         
 
