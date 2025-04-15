@@ -383,9 +383,10 @@ app.get("/hikers", isViewer, async (req, res) => {
                 const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
 
                 // ÚJ: Feladás ellenőrzés
+                const getTimePart = (date) => date?.toTimeString().split(" ")[0];
                 const isDroppedOut =
-                    (departureDate && departureDate.toISOString().slice(0, 10) === "9999-12-31") ||
-                    (arrivalDate && arrivalDate.toISOString().slice(0, 10) === "9999-12-31");
+                    (departureDate && getTimePart(departureDate) === "00:00:00") ||
+                    (arrivalDate && getTimePart(arrivalDate) === "00:00:00");
 
                 if (isDroppedOut) {
                     completionTime = "Feladta";
@@ -412,7 +413,6 @@ app.get("/hikers", isViewer, async (req, res) => {
                     const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
                     completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
                 }
-
                 return { ...hiker, completionTime };
             });
 
@@ -733,9 +733,10 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
     
                 //feladás ellenőrzése
-                const isDroppedOut = 
-                    (departureDate && departureDate.toISOString().slice(0, 10) === "9999-12-31") ||
-                    (arrivalDate && arrivalDate.toISOString().slice(0, 10) === "9999-12-31");
+                const getTimePart = (date) => date?.toTimeString().split(" ")[0];
+                const isDroppedOut =
+                    (departureDate && getTimePart(departureDate) === "00:00:00") ||
+                    (arrivalDate && getTimePart(arrivalDate) === "00:00:00");
                 
                 if(isDroppedOut) {
                     completionTime = "Feladta";
