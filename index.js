@@ -128,6 +128,10 @@ app.get("/reszletesadatok", isViewer, (req, res) => {
     res.render("mapquery.ejs", { user: req.body.user });
 });
 
+app.get("/oklevel", isViewer, (req, res) => {
+    res.render("administrative.ejs", { user: req.body.user });
+});
+
 //checkpoint oldal megjelenítése
 app.get("/checkpoint", isCheckpoint, (req, res) => {
     const role = req.user.role.toLowerCase();
@@ -428,6 +432,55 @@ app.get("/hikers", isViewer, async (req, res) => {
     } else {
         res.redirect("/");
     }
+});
+
+app.get("/api/oklevel", isViewer, async (req, res) => {
+    try {
+        const query = await db.query(`
+            SELECT
+                name
+                ,distance
+                ,departure
+                ,arrival
+            FROM hikers
+            WHERE arrival IS NOT NULL
+            ORDER BY arrival DESC`
+        );
+
+        const inTime = {
+            12: 5 * 60,
+            24: 7 * 60,
+            34: 10 * 60
+        };
+
+        const result = query.rows.map(row => {
+            const departure = new Date(row.departure);
+            const arrival = new Date(row.arrival);
+
+
+            const diffMs = arrival - departure;
+            const minutes = Math.floor(diffMs / (1000 * 60));
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+            const completionTime = `${hours} óra ${remainingMinutes} perc ${seconds} mp`
+
+            const maxMinutes = inTime[row.distance];
+            const isInTime = minutes <= maxMinutes ? "Szintidőn belül" : "Szintidőn kívül";
+
+            return {
+                name: row.name,
+                distance: `${row.distance} km`,
+                completionTime,
+                isInTime
+            };
+        });
+
+        res.json(result);
+    
+    } catch(err) {
+        console.error("Hiba az oklevél lekérdezésénél:", err);
+    }   
 });
 
 
