@@ -12,6 +12,7 @@ import os from "os";
 import fs from "fs";
 import { Parser } from "json2csv";
 import nodemailer from "nodemailer";
+import { stationColumns, referenceTimes } from "./middlewares/config/stationConfig.js";
 
 
 
@@ -155,11 +156,6 @@ app.get("/checkpoint", isCheckpoint, (req, res) => {
     });
 });
 
-//Bejelentkezés az oldalra
-/*app.post("/login", passport.authenticate("local", {
-    successRedirect: "/main",
-    failureRedirect: "/"
-}));*/
 
 app.post("/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
@@ -374,11 +370,11 @@ app.get("/hikers", isViewer, async (req, res) => {
             const hikersArrived = hikerSatistics.rows[0].hikers_arrived;
             const hikersTotal = hikerSatistics.rows[0].hikers_total;
 
-            const stationColumns = {
+            /*const stationColumns = {
                 12: ["piros_haz", "gyugy", "gore_kilato"],
                 24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
                 34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-            };
+            };*/
 
             const hikersWithCompletionTime = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
@@ -685,11 +681,11 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
         "c-bendekpuszta": "bendek_puszta"
     };
 
-    const stationColumns = {
+    /*const stationColumns = {
         12: ["piros_haz", "gyugy", "gore_kilato"],
         24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-    };
+    };*/
 
     const column = columnDictionary[role];
 
@@ -741,11 +737,11 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
 app.post("/get-checkpoint-data", isViewer, async (req, res) => {
     const distance = req.body.distance;
 
-    const stationColumns = {
+    /*const stationColumns = {
         12: ["piros_haz", "gyugy", "gore_kilato"],
         24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
         34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-    };
+    };*/
 
     if(!isNaN(distance)) {
         const numericDistance = parseInt(distance);
@@ -781,6 +777,9 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
     
             const hikersWithStatus = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
+
+                //lassúságfigyelő
+                let isDelayed = false;
     
                 const departureDate = hiker.departure ? new Date(hiker.departure) : null;
                 const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
@@ -803,6 +802,19 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                         }
                     }
                     completionTime = lastCheckpoint;
+
+                    if(lastCheckpoint) {
+                        const lastTime = new Date(hiker[lastCheckpoint]);
+                        const now = new Date();
+                        const minutesPassed = (now - lastTime) / (1000 * 60);
+                        const nextStation = selectedStations[selectedStations.indexOf(lastCheckpoint) + 1] || "start";
+                        const pairKey = `${lastCheckpoint}->${nextStation}`;
+                        const reference = referenceTimes[distance]?.[pairKey];
+
+                        if(reference && minutesPassed > reference) {
+                            isDelayed = true;
+                        }
+                    }
     
                 } else if(departureDate && arrivalDate) {
                     const diffMs = arrivalDate - departureDate;
@@ -812,7 +824,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     completionTime = `${hours} óra ${minutes} perc ${seconds} mp`;
                 }
     
-                return { ...hiker, completionTime };
+                return { ...hiker, completionTime, isDelayed };
             });
             return res.json({
                 hikers: hikersWithStatus,
@@ -858,13 +870,27 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 const checkpointTime = hiker[station];
 
                 let status = "Nem indult el";
+                let isDelayed = false;
+
                 if(hasDeparted && !checkpointTime) {
                     status = "Várjuk";
                 }
                 if(checkpointTime) {
+                    const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
+                    status = time;
+
+                    const now = new Date();
+                    const minutesPassed = (now - new Date(checkpointTime)) / (1000*60);
+                    const reference = referenceTimes?.[validDistance[0]]?.[`${station}->start`];
+                    if (reference && minutesPassed > reference) {
+                        isDelayed = true;
+                    }
+                }
+
+                /*if(checkpointTime) {
                     const time = new Date(checkpointTime).toLocaleTimeString("hu-HU");
                     status = time;
-                }
+                }*/
 
                 return {
                     name: hiker.name,
@@ -872,7 +898,8 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     departure: hiker.departure,
                     arrival: hiker.arrival,
                     [station]: hiker[station],
-                    completionTime: status
+                    completionTime: status,
+                    isDelayed
                 };
             });
 
@@ -900,6 +927,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 hikersTotal,
                 hikersArrived
             });
+
 
         } catch (err) {
             console.error("Állomás lekérdezési hiba:", err);
@@ -931,11 +959,11 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
         }
 
         // === 2. Checkpoints frissítése (dinamikusan)
-        const stationColumns = {
+        /*const stationColumns = {
             12: ["piros_haz", "gyugy", "gore_kilato"],
             24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
             34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-        };
+        };*/
 
         let allowedStations;
 
