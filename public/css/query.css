@@ -152,6 +152,11 @@ button:hover {
     color: red;
 }
 
+.delayed{
+    color: rgb(193, 16, 16);
+    font-weight: bold;
+}
+
 .menu-button {
     position: absolute;
     top: 10px;
@@ -173,3 +178,4 @@ button:hover {
 .menu-button button:hover {
     background-color: #e0e0e0;
 }
+

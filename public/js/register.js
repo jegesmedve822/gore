@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const barcodeInput = document.getElementById("barcode");
     const nameInput = document.getElementById("name");
     const distanceSelect = document.getElementById("distance");
+    const phoneNumber = document.getElementById("phone");
 
     let timeoutId;
 
@@ -41,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
             barcodeInput.value = "";
             nameInput.value = "";
             distanceSelect.value = selectedDistance;
+            phoneNumber.value = "";
             barcodeInput.focus();
         }
 

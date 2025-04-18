@@ -243,6 +243,8 @@ app.post("/registerhiker", isUser, async (req, res)=> {
     const name = req.body.name;
     const distance = req.body.distance;
     const barcode = req.body.barcode;
+    const phoneNumber = req.body.phone;
+    console.log(req.body);
 
     if(!isValidEAN8(barcode)) {
         return res.json({ message: "A vonalkód NEM felel meg az EAN-8 szabványnak!", status: "error" });
@@ -255,8 +257,8 @@ app.post("/registerhiker", isUser, async (req, res)=> {
         if(checkResult.rows.length > 0) {
             return res.json({ message: "A vonalkód már létezik az adatbázisban, adj meg másikat!", status: "error" });
         } else {
-            const result = await db.query("INSERT INTO hikers (name, distance, barcode) VALUES($1, $2, $3) RETURNING id",
-                [name, distance, barcode]
+            const result = await db.query("INSERT INTO hikers (name, distance, barcode, phone_number) VALUES($1, $2, $3, $4) RETURNING id",
+                [name, distance, barcode, phoneNumber]
             );
 
             lastInsertedId = result.rows[0].id;
@@ -369,12 +371,6 @@ app.get("/hikers", isViewer, async (req, res) => {
 
             const hikersArrived = hikerSatistics.rows[0].hikers_arrived;
             const hikersTotal = hikerSatistics.rows[0].hikers_total;
-
-            /*const stationColumns = {
-                12: ["piros_haz", "gyugy", "gore_kilato"],
-                24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
-                34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-            };*/
 
             const hikersWithCompletionTime = result.rows.map(hiker => {
                 let completionTime = "Még nem indult el";
@@ -681,12 +677,6 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
         "c-bendekpuszta": "bendek_puszta"
     };
 
-    /*const stationColumns = {
-        12: ["piros_haz", "gyugy", "gore_kilato"],
-        24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
-        34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-    };*/
-
     const column = columnDictionary[role];
 
     if (!column) {
@@ -737,11 +727,6 @@ app.post("/checkpointinsert", isCheckpoint, async (req, res) => {
 app.post("/get-checkpoint-data", isViewer, async (req, res) => {
     const distance = req.body.distance;
 
-    /*const stationColumns = {
-        12: ["piros_haz", "gyugy", "gore_kilato"],
-        24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
-        34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-    };*/
 
     if(!isNaN(distance)) {
         const numericDistance = parseInt(distance);
@@ -876,7 +861,8 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     status = "Várjuk";
                 }
                 if(checkpointTime) {
-                    const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
+                    //const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
+                    const time = new Date(checkpointTime).toLocaleTimeString();
                     status = time;
 
                     const now = new Date();
@@ -887,10 +873,6 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     }
                 }
 
-                /*if(checkpointTime) {
-                    const time = new Date(checkpointTime).toLocaleTimeString("hu-HU");
-                    status = time;
-                }*/
 
                 return {
                     name: hiker.name,
@@ -957,13 +939,6 @@ app.post("/update-checkpoint-data", isUser, async (req, res) => {
             await db.query("INSERT INTO checkpoints (barcode) VALUES ($1)", [barcode]);
             console.log("Új sor beszúrva a checkpoints táblába (modalból).");
         }
-
-        // === 2. Checkpoints frissítése (dinamikusan)
-        /*const stationColumns = {
-            12: ["piros_haz", "gyugy", "gore_kilato"],
-            24: ["kishegy", "piros_haz", "gyugy", "gore_kilato"],
-            34: ["kishegy", "piros_haz", "harsas_puszta", "bendek_puszta", "gyugy", "gore_kilato"]
-        };*/
 
         let allowedStations;
 

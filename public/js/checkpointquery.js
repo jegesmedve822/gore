@@ -125,6 +125,11 @@ function renderTableRows(data, stations) {
             row.classList.add("selected");
         }
 
+        //isDelayed kezelése
+        if(hiker.isDelayed) {
+            row.classList.add("delayed");
+        }
+
         row.addEventListener("click", function () {
             document.querySelectorAll("#table-body tr").forEach(r => r.classList.remove("selected"));
             this.classList.add("selected");
@@ -135,10 +140,6 @@ function renderTableRows(data, stations) {
     });
 }
 
-//ezt lecseréltük
-/*function formatDate(dateString) {
-    return dateString ? new Date(dateString).toLocaleString("hu-HU") : "—";
-}*/
 
 function formatDate(dateString) {
     if (!dateString) return "—";
