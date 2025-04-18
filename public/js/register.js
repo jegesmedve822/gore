@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const phoneNumber = document.getElementById("phone");
 
     let timeoutId;
+    barcodeInput.focus();
 
     // Regisztráció AJAX
     registerForm.addEventListener("submit", async function (event) {
@@ -47,4 +48,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
     });
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            const activeElement = document.activeElement;
+
+            if (activeElement === barcodeInput) {
+                event.preventDefault();
+
+                const barcodeValue = barcodeInput.value.trim();
+                const distanceCode = barcodeValue.substring(2, 4); // 2-3. karakterek
+
+
+                if (["12", "24", "34"].includes(distanceCode)) {
+                    distanceSelect.value = distanceCode;
+                    nameInput.focus();
+                } else {
+                    distanceSelect.focus();
+                }
+            } else {
+                // Ha nem a vonalkód mezőn vagyunk, akkor submit
+                event.preventDefault();
+                registerForm.requestSubmit();
+            }
+        }
+    });
+
 });
