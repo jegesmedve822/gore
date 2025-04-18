@@ -51,6 +51,7 @@ function loadCheckpointData() {
     headerRow.innerHTML = `
         <th>Név</th>
         <th>Vonalkód</th>
+        <th>Telefonszám</th>
         <th>Indulás</th>
         ${stations.map(s => `<th>${stationLabels[s]}</th>`).join("")}
         <th>Érkezés</th>
@@ -115,6 +116,7 @@ function renderTableRows(data, stations) {
         row.innerHTML = `
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
+            <td>${hiker.phone_number || "—"}</td>
             <td>${formatDate(hiker.departure)}</td>
             ${stations.map(st => `<td>${formatDate(hiker[st])}</td>`).join("")}
             <td>${formatDate(hiker.arrival)}</td>

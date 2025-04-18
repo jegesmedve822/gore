@@ -479,7 +479,8 @@ app.get("/api/oklevel", isViewer, async (req, res) => {
 //a módosítás funkciója
 app.post("/update", isUser, async (req, res) => {
     if(req.isAuthenticated()) {
-        const { id, name, barcode, distance, departure, arrival } = req.body;
+        const { id, name, barcode, distance, phone, departure, arrival } = req.body;
+
 
         try {
             const result = await db.query("SELECT departure, arrival FROM hikers WHERE id = $1", [id]);
@@ -491,8 +492,8 @@ app.post("/update", isUser, async (req, res) => {
 
 
             await db.query(
-                "UPDATE hikers SET name = $1, barcode = $2, distance = $3, departure = $4, arrival = $5 WHERE id = $6",
-                [name, barcode, distance, safeDeparture || null, safeArrival ||null, id]
+                "UPDATE hikers SET name = $1, barcode = $2, distance = $3, phone_number = $4, departure = $5, arrival = $6 WHERE id = $7",
+                [name, barcode, distance, phone, safeDeparture || null, safeArrival ||null, id]
             );
             res.json({ message: "Sikeresen frissítve!", status: "success" });
         } catch(err) {
@@ -736,11 +737,12 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
         try {
             const query = `
                 SELECT
-                    h.name,
-                    h.barcode,
-                    h.departure,
-                    h.arrival,
-                    ${selectedColumns}
+                    h.name
+                    ,h.barcode
+                    ,h.phone_number
+                    ,h.departure
+                    ,h.arrival
+                    ,${selectedColumns}
                 FROM hikers h
                 LEFT JOIN checkpoints c
                 ON h.barcode = c.barcode
@@ -839,6 +841,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 SELECT
                     h.name
                     ,h.barcode
+                    ,h.phone_number
                     ,h.departure
                     ,h.arrival
                     ,c.${safeStation}

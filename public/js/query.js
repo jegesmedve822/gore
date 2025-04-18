@@ -93,9 +93,9 @@ function renderTable(hikers) {
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
             <td>${hiker.distance}</td>
+            <td>${hiker.phone_number || "—"}</td>
             <td>${formatTimeOnly(hiker.departure)}</td>
             <td>${formatTimeOnly(hiker.arrival)}</td>
-            <td>${hiker.phone_number || "—"}</td>
             <td>${lastCheckpointLabel}</td>
         `;
 

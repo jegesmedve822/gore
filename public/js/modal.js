@@ -41,13 +41,13 @@ document.addEventListener("DOMContentLoaded", function () {
         //idáig
 
 
-        //adatok betöltése a kiválasztott sorból
-        //document.getElementById("edit-id").value = selectedRow.cells[0].textContent;
+
         const id = selectedRow.getAttribute("data-id");
         document.getElementById("edit-id").value = id;
         document.getElementById("edit-name").value = selectedRow.cells[1].textContent;
         document.getElementById("edit-barcode").value = selectedRow.cells[2].textContent;
         document.getElementById("edit-distance").value = selectedRow.cells[3].textContent;
+        document.getElementById("edit-phone").value = selectedRow.cells[4].textContent;
 
 
 
@@ -67,8 +67,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         
 
-        let departure = parseTimeOnly(selectedRow.cells[4].textContent);
-        let arrival = parseTimeOnly(selectedRow.cells[5].textContent);
+        let departure = parseTimeOnly(selectedRow.cells[5].textContent);
+        let arrival = parseTimeOnly(selectedRow.cells[6].textContent);
 
 
 
@@ -94,6 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const name = document.getElementById("edit-name").value;
         const distance = document.getElementById("edit-distance").value;
         const barcode = document.getElementById("edit-barcode").value;
+        const phone = document.getElementById("edit-phone").value;
 
 
         //dátum idő összefűzése
@@ -102,8 +103,6 @@ document.addEventListener("DOMContentLoaded", function () {
         let arrivalDate = document.getElementById("original-arrival-date").value;
         let arrivalTime = document.getElementById("edit-arrival").value;
 
-        //let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
-        //let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
 
         //a fentit szedtük ki, ezt rakjuk le
         const today = new Date().toISOString().split("T")[0];
@@ -118,16 +117,12 @@ document.addEventListener("DOMContentLoaded", function () {
         let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
         let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
 
-        console.log("Dátum fallback működik-e:");
-        console.log({ departureDate, departureTime, departure });
-        console.log({ arrivalDate, arrivalTime, arrival });
-
 
         try {
             const response = await fetch("/update", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id, name, distance, barcode, departure, arrival })
+                body: JSON.stringify({ id, name, barcode, distance, phone, departure, arrival })
             });
 
             if(response.status === 403) {
