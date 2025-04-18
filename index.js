@@ -458,13 +458,15 @@ app.get("/api/oklevel", isViewer, async (req, res) => {
             const completionTime = `${hours} óra ${remainingMinutes} perc ${seconds} mp`
 
             const maxMinutes = inTime[row.distance];
-            const isInTime = minutes <= maxMinutes ? "Szintidőn belül" : "Szintidőn kívül";
+            const success = minutes <= maxMinutes;
+            const isInTime = success ? "Szintidőn belül" : "Szintidőn kívül";
 
             return {
                 name: row.name,
                 distance: `${row.distance} km`,
                 completionTime,
-                isInTime
+                isInTime,
+                success
             };
         });
 

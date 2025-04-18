@@ -36,6 +36,12 @@ function renderTable(hikers) {
             <td>${hiker.completionTime}</td>
         `;
 
+        if(hiker.success){
+            row.classList.add("success");
+        } else {
+            row.classList.add("error");
+        }
+
         tbody.appendChild(row);
     });
 }
