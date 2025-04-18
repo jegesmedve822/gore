@@ -779,6 +779,12 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 
                 if(isDroppedOut) {
                     completionTime = "Feladta";
+
+                    //minden állomás oszlopában szerepeljen a 00:00:00
+                    selectedStations.forEach(stationKey => {
+                        hiker[stationKey] = new Date("9999-12-31 00:00:00");
+                    });
+
                 } else if(departureDate && !arrivalDate) {
                     let lastCheckpoint = "Elindult";
                     for(let i = selectedStations.length -1; i >= 0; i--) {
@@ -854,16 +860,26 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
             const result = await db.query(query, [validDistance]);
 
             const response = result.rows.map(hiker => {
-                const hasDeparted = hiker.departure && hiker.departure.toISOString().slice(0, 10) !== "9999-12-31";
+                //const hasDeparted = hiker.departure && hiker.departure.toISOString().slice(0, 10) !== "9999-12-31";
+                const getTimePart = (date) => date?.toTimeString().split(" ")[0];
+                const isDroppedOut =
+                    (hiker.departure && getTimePart(new Date(hiker.departure)) === "00:00:00") ||
+                    (hiker.arrival && getTimePart(new Date(hiker.arrival)) === "00:00:00");
                 const checkpointTime = hiker[station];
 
                 let status = "Nem indult el";
                 let isDelayed = false;
 
-                if(hasDeparted && !checkpointTime) {
+                if(isDroppedOut) {
+                    status="Feladta";
+                    isDelayed = false;
+                    hiker[station] = new Date("9999-12-31 00:00:00");
+                }
+
+                else if(hiker.departure && !checkpointTime) {
                     status = "Várjuk";
                 }
-                if(checkpointTime) {
+                else if(checkpointTime) {
                     //const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
                     const time = new Date(checkpointTime).toLocaleTimeString();
                     status = time;

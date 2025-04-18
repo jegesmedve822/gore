@@ -154,6 +154,7 @@ function formatDate(dateString) {
 }
 
 
+
 function filterTable() {
     const filter = document.getElementById("searchInput").value.toLowerCase();
     const rows = document.querySelectorAll("#table-body tr");
