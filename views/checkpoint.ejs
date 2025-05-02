@@ -33,7 +33,19 @@
             >
             <br>
             <button type="submit">Érkezés rögzítése</button>
+
+            <div class="camera-scanner">
+                <button id="start-camera-scan" type="button"><img src="images/camera.svg" alt="kamera ikon"> Beolvasás kamerával</button>
+                <div id="camera-container" style="display: none; margin-top: 15px;">
+                    <div id="scanner" style="width: 100%; max-width: 400px; height: auto; border: 2px solid red;"></div>
+                    <p id="camera-status"></p>
+                    <button id="stop-camera-scan" type="button">Kamera leállítása</button>
+                </div>
+            </div>
+
         </form>
+
+
         <p class="signature">© StackMatic</p>
     </div>
 
@@ -41,5 +53,7 @@
         const checkpointRole = "<%= checkpointRole %>";
     </script>
     <script src="js/checkpoint.js"></script>
+    <script src="js/scanner.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </body>
 </html>
