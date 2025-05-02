@@ -60,7 +60,7 @@ td {
 
 /* Interaktív táblázat keresés és szerkesztés */
 input {
-    width: 100%;
+    /*width: 80%;*/
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 3px;
@@ -179,3 +179,83 @@ button:hover {
     background-color: #e0e0e0;
 }
 
+.signature{
+    margin-bottom: 15px;
+}
+
+.modal-content form input,
+.modal-content form select {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+
+@media screen and (max-width: 768px) {
+    .wrapper {
+        padding: 10px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        font-size: 25px;
+        margin-top: 25px;
+    }
+
+    #distanceSelect,
+    #searchInput,
+    .buttons button
+     {
+        width: 40%;
+        max-width: 60%;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+
+    .logout-button {
+        width: 80px;
+    }
+
+    .buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 6px;
+    }
+
+    #searchInput {
+        margin-bottom: 10px;
+    }
+
+    #distanceSelect {
+        margin-top: 15px;
+    }
+
+    .menu-button {
+        top: 10px;
+        right: 10px;
+    }
+
+    .menu-button button {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    #hikerStats {
+        font-size: 15px;
+        margin-top: 10px;
+    }
+}

@@ -50,7 +50,7 @@ button:active {
 
 .wallpaper {
     margin-top: 40px;
-    width: 60vw;
+    width: 70vw;
 }
 .wallpaper img {
     width: 750px;
@@ -67,4 +67,44 @@ button:active {
     position: absolute;
     top: 10px;
     right: 10px;
+}
+
+.signature {
+    padding-bottom: 15px;
+}
+
+@media screen and (max-width: 768px) {
+    .buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 10px 16px;
+        width: 60vw;
+    }
+
+    .wrapper {
+        padding-top: 80px;
+        height: auto;
+    }
+
+    .menu-button {
+        top: 10px;
+        right: 10px;
+    }
+
+    .wallpaper {
+        margin-top: 30px;
+        width: 90vw;
+    }
+
+    .wallpaper img {
+        max-width: 90%;
+    }
+
+    .logout button{
+        max-width: 30vw;
+    }
 }

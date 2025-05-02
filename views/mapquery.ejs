@@ -8,12 +8,13 @@
     <link rel="stylesheet" href="css/query.css">
 </head>
 <body>
-    <div class="menu-button">
-        <a href="/modositas">
-            <button type="button">Vissza</button>
-        </a>
-    </div>
     <div class="wrapper">
+        <div class="menu-button">
+            <a href="/modositas">
+                <button class="logout-button" type="button">Vissza</button>
+            </a>
+        </div>
+  
         <div class="head">
             <h1>Állomásra érkezések megjelenítése</h1>
             <br>
@@ -36,9 +37,10 @@
             <br>
             <button id="export-csv">Exportálás CSV-be</button>
             <p id="message"></p>
+            <br>
+            <p id="hikerStats"></p>
         </div>
 
-        <p id="hikerStats"></p>
 
         <div id="editModal" class="modal">
             <div class="modal-content">
@@ -80,6 +82,8 @@
                 <!-- Az adatok AJAX-szal töltődnek be -->
             </tbody>
         </table>
+        <br>
+        <p class="signature">© StackMatic</p>
     </div>
 
     <script src="js/checkpointquery.js"></script>
