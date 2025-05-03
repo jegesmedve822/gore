@@ -63,6 +63,9 @@ function onBarcodeDetected(data) {
 
     // Automatikus leállítás (ha szeretnéd folyamatos olvasás helyett)
     stopScanner();
+
+    //nem kell a konténer sem
+    cameraContainer.style.display="none";
 }
 
 // Leállítja a QuaggaJS-t
