@@ -110,9 +110,24 @@ button:active {
 }
 
 #scanner {
-    width: 200px;
-    height: 200px;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1 / 1; /* Modern, reszponzív négyzet */
+    position: relative;
+    overflow: hidden; /* biztosítja, hogy a videó ne lógjon ki */
+    border: 2px solid red;
 }
+
+
+#scanner video,
+#scanner canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover; /* Vágja a képet, hogy teljesen kitöltse a területet */
+    border-radius: 10px; /* opcionális: szép lekerekítés */
+    display: block;
+}
+
 
 /* Üzenetek */
 #s-message,
