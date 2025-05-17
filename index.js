@@ -883,8 +883,11 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 }
                 else if(checkpointTime) {
                     //const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
-                    const time = new Date(checkpointTime).toLocaleTimeString();
-                    status = time;
+                    const time = new Date(checkpointTime);
+                    const hours = time.getHours();
+                    const minutes = time.getMinutes();
+                    const seconds = time.getSeconds();
+                    status = `${hours} óra ${minutes} perc ${seconds} mp`;
 
                     const now = new Date();
                     const minutesPassed = (now - new Date(checkpointTime)) / (1000*60);
@@ -899,7 +902,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     name: hiker.name,
                     barcode: hiker.barcode,
                     departure: hiker.departure,
-                    arrival: hiker.arrival,
+                    //arrival: hiker.arrival,
                     [station]: hiker[station],
                     completionTime: status,
                     isDelayed

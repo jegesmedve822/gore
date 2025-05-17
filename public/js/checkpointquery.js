@@ -48,13 +48,18 @@ function loadCheckpointData() {
 
     // Frissítjük a fejlécet
     const headerRow = document.getElementById("table-header");
+    //arrival column
+    let arrivalColumn = "";
+    if(isDistance) {
+        arrivalColumn = "<th>Érkezés</th>";
+    }
     headerRow.innerHTML = `
         <th>Név</th>
         <th>Vonalkód</th>
         <th>Telefonszám</th>
         <th>Indulás</th>
         ${stations.map(s => `<th>${stationLabels[s]}</th>`).join("")}
-        <th>Érkezés</th>
+        ${isDistance ? "<th>Érkezés</th>" : ""}
         <th>Státusz</th>
     `;
 
@@ -79,7 +84,7 @@ function loadCheckpointData() {
             statsEl.textContent = "";
         }
 
-        renderTableRows(hikers, stations);
+        renderTableRows(hikers, stations, isDistance);
 
         //a filterezés megmaradjon
         document.getElementById("searchInput").value = filterValue;
@@ -100,7 +105,7 @@ function loadCheckpointData() {
 }
 
 
-function renderTableRows(data, stations) {
+function renderTableRows(data, stations, showArrival) {
     const tbody = document.getElementById("table-body");
     tbody.innerHTML = "";
 
@@ -113,15 +118,21 @@ function renderTableRows(data, stations) {
 
         const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
 
-        row.innerHTML = `
+        //row.innerHTML = `
+        let rowHTML = `
             <td>${hiker.name}</td>
             <td>${hiker.barcode}</td>
             <td>${hiker.phone_number || "—"}</td>
             <td>${formatDate(hiker.departure)}</td>
             ${stations.map(st => `<td>${formatDate(hiker[st])}</td>`).join("")}
-            <td>${formatDate(hiker.arrival)}</td>
-            <td>${lastCheckpointLabel}</td>
         `;
+            //<td>${formatDate(hiker.arrival)}</td>
+            //<td>${lastCheckpointLabel}</td>
+        if(showArrival){
+            rowHTML += `<td>${formatDate(hiker.arrival)}</td>`
+        }
+        rowHTML += `<td>${lastCheckpointLabel}</td>`
+        row.innerHTML = rowHTML;
 
         if (hiker.barcode === selectedBarcode) {
             row.classList.add("selected");
