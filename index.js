@@ -244,7 +244,6 @@ app.post("/registerhiker", isUser, async (req, res)=> {
     const distance = req.body.distance;
     const barcode = req.body.barcode;
     const phoneNumber = req.body.phone;
-    console.log(req.body);
 
     if(!isValidEAN8(barcode)) {
         return res.json({ message: "A vonalkód NEM felel meg az EAN-8 szabványnak!", status: "error" });
@@ -799,11 +798,15 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     completionTime = lastCheckpoint;
 
                     if(lastCheckpoint) {
-                        const lastTime = new Date(hiker[lastCheckpoint]);
+                        //const lastTime = new Date(hiker[lastCheckpoint]);
+                        const lastTime = new Date(lastCheckpoint ==="Elindult" ? hiker.departure : hiker[lastCheckpoint]);
                         const now = new Date();
                         const minutesPassed = (now - lastTime) / (1000 * 60);
                         const nextStation = selectedStations[selectedStations.indexOf(lastCheckpoint) + 1] || "start";
-                        const pairKey = `${lastCheckpoint}->${nextStation}`;
+                        //const pairKey = `${lastCheckpoint}->${nextStation}`;
+                        const normalizedLastCheckpoint = lastCheckpoint === "Elindult" ? "start" : lastCheckpoint;
+                        const pairKey = `${normalizedLastCheckpoint}->${nextStation}`;
+
                         const reference = referenceTimes[distance]?.[pairKey];
 
                         if(reference && minutesPassed > reference) {
@@ -884,14 +887,21 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 else if(checkpointTime) {
                     //const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
                     const time = new Date(checkpointTime);
+                    //const time = new Date(lastCheckpoint ==="Elindult" ? hiker.departure : hiker[lastCheckpoint]);
                     const hours = time.getHours();
                     const minutes = time.getMinutes();
                     const seconds = time.getSeconds();
                     status = `${hours} óra ${minutes} perc ${seconds} mp`;
 
                     const now = new Date();
-                    const minutesPassed = (now - new Date(checkpointTime)) / (1000*60);
-                    const reference = referenceTimes?.[validDistance[0]]?.[`${station}->start`];
+                    const minutesPassed = (now - time) / (1000*60);
+                    //const reference = referenceTimes?.[validDistance[0]]?.[`${station}->start`];
+                    const stationList = stationColumns[validDistance[0]];
+                    const currentIndex = stationList.indexOf(station);
+                    const previousStation = currentIndex > 0 ? stationList[currentIndex - 1] : "start";
+                    const pairKey = `${previousStation}->${station}`;
+                    const reference = referenceTimes?.[validDistance[0]]?.[pairKey];
+
                     if (reference && minutesPassed > reference) {
                         isDelayed = true;
                     }

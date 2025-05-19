@@ -55,6 +55,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const name = cells[0].textContent;
         const barcode = cells[1].textContent;
 
+        const departure = selectedRow.getAttribute("data-departure") || "";
+        const arrival = selectedRow.getAttribute("data-arrival") || "";
+
+
         const departureRaw = cells[2].textContent;
         const arrivalRaw = cells[3 + stations.length].textContent;
 
@@ -64,32 +68,38 @@ document.addEventListener("DOMContentLoaded", function () {
         const arrivalDate = selectedRow.getAttribute("data-arrival-date") || "";
 
         console.log("departureDate:", departureDate);
-        const departureTime = parseTimeOnly(departureRaw);
-        const arrivalTime = parseTimeOnly(arrivalRaw);
+        const departureTime = parseDateTimeLocal(departureRaw);
+        const arrivalTime = parseDateTimeLocal(arrivalRaw);
         console.log("departureTime:", departureTime);
 
         //adatok betöltése a kiválasztott sorból
         document.getElementById("edit-name").value = name;
         document.getElementById("edit-barcode").value = barcode;
-        document.getElementById("edit-departure").value = departureTime;
-        document.getElementById("edit-arrival").value = arrivalTime;
-        document.getElementById("original-departure-date").value = departureDate;
+        //document.getElementById("edit-departure").value = parseDateTimeLocal(departureDate);
+        //document.getElementById("edit-arrival").value = parseDateTimeLocal(arrivalDate);
+        document.getElementById("edit-departure").value = parseDateTimeLocal(departure);
+        document.getElementById("edit-arrival").value = parseDateTimeLocal(arrival);
+        //document.getElementById("original-departure-date").value = departureDate;
         document.getElementById("original-arrival-date").value = arrivalDate;
 
         const stationFields = document.getElementById("station-fields");
         stationFields.innerHTML = "";
 
         stations.forEach((stationKey, i) => {
+            console.log("Cell value:", cells[3 + i].textContent);
             const label = document.createElement("label");
             label.textContent = stationLabels[stationKey];
             label.setAttribute("for", `edit-${stationKey}`);
 
             const input = document.createElement("input");
-            input.type = "time";
+            input.type = "datetime-local";
             input.name = stationKey;
             input.id = `edit-${stationKey}`;
             input.step = "1";
-            input.value = parseTimeOnly(cells[3 + i].textContent);
+            //input.value = parseDateTimeLocal(cells[3 + i].textContent);
+            const timestamp = selectedRow.getAttribute(`data-${stationKey}`) || "";
+            input.value = parseDateTimeLocal(timestamp);
+
 
             stationFields.appendChild(label);
             stationFields.appendChild(input);
@@ -116,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return `${year}-${month}-${day}`;
         }
         
-        function parseTimeOnly(dateString) {
+        /*function parseTimeOnly(dateString) {
             if (!dateString || dateString === "—") return "";
         
             // ISO formátum (pl. "2024-04-12T23:59:59")
@@ -136,7 +146,34 @@ document.addEventListener("DOMContentLoaded", function () {
             // Plain time string (pl. "23:40:07")
             const [hour, minute, second = "00"] = dateString.split(":");
             return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
+        }*/
+
+        /*function parseDateTimeLocal(dateString) {
+            if(!dateString || dateString === "—") return "";
+
+            const date = new Date(dateString);
+            if(isNaN(date.getTime())) return "";
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        }*/
+
+        function parseDateTimeLocal(dateString) {
+            if (!dateString || dateString === "—") return "";
+            
+            // Vágd le a Z-t és a milliszekundumokat, ha vannak
+            const clean = dateString.replace(/\.\d{3}Z$/, "");
+            
+            // Csak az első 19 karakter kell (YYYY-MM-DDTHH:MM:SS)
+            return clean.length >= 19 ? clean.slice(0, 19) : "";
         }
+            
         
 
         
@@ -166,15 +203,21 @@ document.addEventListener("DOMContentLoaded", function () {
             arrivalDate = today;
         }
 
-        const departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
-        const arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+        //const departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
+        //const arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+
+        const departure = document.getElementById("edit-departure").value || null;
+        const arrival = document.getElementById("edit-arrival").value || null;
+
 
 
         const stationData = {};
         stations.forEach(key => {
             const input = document.getElementById(`edit-${key}`);
             const time = input?.value || null;
-            stationData[key] = (time && departureDate) ? `${departureDate}T${time}` : null;
+            //stationData[key] = (time && departureDate) ? `${departureDate}T${time}` : null;
+            stationData[key] = time || null;
+
         });
         
 
@@ -191,6 +234,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     stations: stationData
                 })
             });
+            console.log("STATIONDATA POSZTHOZ:", JSON.stringify(stationData));
+
 
             const result = await response.json();
             showMessage(result.message, result.status);

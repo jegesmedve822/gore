@@ -112,8 +112,11 @@ function renderTableRows(data, stations, showArrival) {
     data.forEach(hiker => {
         const row = document.createElement("tr");
 
-        row.setAttribute("data-departure-date", hiker.departure ? new Date(hiker.departure).toISOString().split("T")[0] : "");
-        row.setAttribute("data-arrival-date", hiker.arrival ? new Date(hiker.arrival).toISOString().split("T")[0] : "");
+        //row.setAttribute("data-departure-date", hiker.departure ? new Date(hiker.departure).toISOString().split("T")[0] : "");
+        //row.setAttribute("data-arrival-date", hiker.arrival ? new Date(hiker.arrival).toISOString().split("T")[0] : "");
+
+        row.setAttribute("data-departure", hiker.departure || "");
+        row.setAttribute("data-arrival", hiker.arrival || "");
 
 
         const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
@@ -126,6 +129,11 @@ function renderTableRows(data, stations, showArrival) {
             <td>${formatDate(hiker.departure)}</td>
             ${stations.map(st => `<td>${formatDate(hiker[st])}</td>`).join("")}
         `;
+
+        stations.forEach(st => {
+            row.setAttribute(`data-${st}`, hiker[st] || "");
+        });
+        
             //<td>${formatDate(hiker.arrival)}</td>
             //<td>${lastCheckpointLabel}</td>
         if(showArrival){
