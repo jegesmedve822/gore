@@ -126,53 +126,21 @@ document.addEventListener("DOMContentLoaded", function () {
             return `${year}-${month}-${day}`;
         }
         
-        /*function parseTimeOnly(dateString) {
-            if (!dateString || dateString === "—") return "";
-        
-            // ISO formátum (pl. "2024-04-12T23:59:59")
-            if (dateString.includes("T")) {
-                const [_, timePart] = dateString.split("T");
-                const [hour, minute, second = "00"] = timePart.split(":");
-                return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
-            }
-        
-            // Formátum: "2024. 04. 12. 23:59:59"
-            const match = dateString.match(/\d{4}\.\s*\d{2}\.\s*\d{2}\.\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-            if (match) {
-                const [_, hour, minute, second = "00"] = match;
-                return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
-            }
-        
-            // Plain time string (pl. "23:40:07")
-            const [hour, minute, second = "00"] = dateString.split(":");
-            return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${second.padStart(2, "0")}`;
-        }*/
-
-        /*function parseDateTimeLocal(dateString) {
-            if(!dateString || dateString === "—") return "";
-
-            const date = new Date(dateString);
-            if(isNaN(date.getTime())) return "";
-
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
-            const hours = String(date.getHours()).padStart(2, "0");
-            const minutes = String(date.getMinutes()).padStart(2, "0");
-            const seconds = String(date.getSeconds()).padStart(2, "0");
-
-            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-        }*/
-
         function parseDateTimeLocal(dateString) {
             if (!dateString || dateString === "—") return "";
-            
-            // Vágd le a Z-t és a milliszekundumokat, ha vannak
-            const clean = dateString.replace(/\.\d{3}Z$/, "");
-            
-            // Csak az első 19 karakter kell (YYYY-MM-DDTHH:MM:SS)
-            return clean.length >= 19 ? clean.slice(0, 19) : "";
+        
+            const d = new Date(dateString);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            const hour = String(d.getHours()).padStart(2, "0");
+            const minute = String(d.getMinutes()).padStart(2, "0");
+            const second = String(d.getSeconds()).padStart(2, "0");
+        
+            return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
         }
+        
+        
             
         
 
@@ -208,6 +176,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const departure = document.getElementById("edit-departure").value || null;
         const arrival = document.getElementById("edit-arrival").value || null;
+        console.log("MODAL RAW DEPARTURE:", departure);
+        console.log("typeof departure:", typeof departure);
+        const parsed = parseDateTimeLocal(departure);
+        console.log("INPUT VALUE LESZ:", parsed);
+        document.getElementById("edit-departure").value = parsed;
+
+
 
 
 
