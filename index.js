@@ -481,6 +481,7 @@ app.get("/api/oklevel", isViewer, async (req, res) => {
 app.post("/update", isUser, async (req, res) => {
     if(req.isAuthenticated()) {
         const { id, name, barcode, distance, phone, departure, arrival } = req.body;
+        console.log(req.body);
 
 
         try {

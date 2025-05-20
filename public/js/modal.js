@@ -32,13 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        //ezt sem tudom
-        const departureDate = selectedRow.getAttribute("data-departure-date");
-        const arrivalDate = selectedRow.getAttribute("data-arrival-date");
+        const departureRaw = selectedRow.getAttribute("data-departure");
+        const arrivalRaw = selectedRow.getAttribute("data-arrival");
 
-        document.getElementById("original-departure-date").value = departureDate;
-        document.getElementById("original-arrival-date").value = arrivalDate;
-        //idáig
+        document.getElementById("original-departure-date").value = departureRaw || "";
+        document.getElementById("original-arrival-date").value = arrivalRaw || "";
+
+        document.getElementById("edit-departure").value = parseDateTimeLocal(departureRaw);
+        document.getElementById("edit-arrival").value = parseDateTimeLocal(arrivalRaw);
+
 
 
 
@@ -65,17 +67,30 @@ document.addEventListener("DOMContentLoaded", function () {
             const [hour, minute, second] = timeString.split(":");
             return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${(second || "00").padStart(2, "0")}`;
         }
+
+        function parseDateTimeLocal(dateString) {
+            if (!dateString || dateString === "—") return "";
+            const d = new Date(dateString);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            const hour = String(d.getHours()).padStart(2, "0");
+            const minute = String(d.getMinutes()).padStart(2, "0");
+            const second = String(d.getSeconds()).padStart(2, "0");
+            return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+        }        
+        
         
 
-        let departure = parseTimeOnly(selectedRow.cells[5].textContent);
-        let arrival = parseTimeOnly(selectedRow.cells[6].textContent);
+        //let departure = parseTimeOnly(selectedRow.cells[5].textContent);
+        //let arrival = parseTimeOnly(selectedRow.cells[6].textContent);
 
 
 
-        document.getElementById("edit-departure").value = departure;
+        //document.getElementById("edit-departure").value = departure;
         //document.getElementById("original-departure-date").value = departure;
 
-        document.getElementById("edit-arrival").value = arrival;
+        //document.getElementById("edit-arrival").value = arrival;
         //document.getElementById("original-arrival-date").value = arrival;
 
         modal.style.display = "block";
@@ -114,8 +129,11 @@ document.addEventListener("DOMContentLoaded", function () {
             arrivalDate = today;
         }
 
-        let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
-        let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+        //let departure = (departureDate && departureTime) ? `${departureDate}T${departureTime}` : null;
+        //let arrival = (arrivalDate && arrivalTime) ? `${arrivalDate}T${arrivalTime}` : null;
+        let departure = departureTime || null;
+        let arrival = arrivalTime || null;
+
 
 
         try {
@@ -124,6 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id, name, barcode, distance, phone, departure, arrival })
             });
+            console.log(body);
 
             if(response.status === 403) {
                 showMessage("Nincs jogosultságod az adatmódosításhoz!", "error");

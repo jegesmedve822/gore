@@ -82,9 +82,15 @@ function renderTable(hikers) {
 
 
         //nem tudom mi az értelme
+        //row.setAttribute("data-departure-date", hiker.departure ? new Date(hiker.departure).toISOString().split("T")[0] : "");
+        //row.setAttribute("data-arrival-date", hiker.arrival ? new Date(hiker.arrival).toISOString().split("T")[0] : "");
+        //eddig nem tudtam
+
+        row.setAttribute("data-departure", hiker.departure || "");
+        row.setAttribute("data-arrival", hiker.arrival || "");
         row.setAttribute("data-departure-date", hiker.departure ? new Date(hiker.departure).toISOString().split("T")[0] : "");
         row.setAttribute("data-arrival-date", hiker.arrival ? new Date(hiker.arrival).toISOString().split("T")[0] : "");
-        //eddig nem tudtam
+
 
         const lastCheckpointLabel = stationLabels[hiker.completionTime] || hiker.completionTime;
 
