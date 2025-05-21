@@ -361,8 +361,15 @@ app.get("/hikers", isViewer, async (req, res) => {
             const checkpointResult = await db.query("SELECT * FROM checkpoints");
             const hikerSatistics = await db.query(
                 `SELECT
-                    COUNT(*) FILTER (WHERE arrival IS NOT NULL) AS hikers_arrived
-                    ,COUNT(*) AS hikers_total
+                    COUNT(*) FILTER (
+                        WHERE arrival IS NOT NULL
+                        AND date(arrival) != '9999-12-31'
+                        AND date(departure) != '9999-12-31'
+                        ) AS hikers_arrived
+                    ,COUNT(*) FILTER(
+                        WHERE date(arrival) != '9999-12-31'
+                        AND date(departure) != '9999-12-31'
+                    ) AS hikers_total
                 FROM
                     hikers
                 `
@@ -755,8 +762,13 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
             const result = await db.query(query, [distance]);
             const hikerSatistics = await db.query(
                 `SELECT
-                    COUNT(*) FILTER (WHERE distance = $1 AND arrival IS NOT NULL) AS hikers_arrived
-                    ,COUNT(*) FILTER (WHERE distance = $1) AS hikers_total
+                    COUNT(*) FILTER (
+                        WHERE distance = $1
+                        AND arrival IS NOT NULL 
+                        AND date(departure) != '9999-12-31' AND date(arrival) != '9999-12-31') AS hikers_arrived
+                    ,COUNT(*) FILTER (
+                        WHERE distance = $1 
+                        AND date(departure) != '9999-12-31' AND date(arrival) != '9999-12-31') AS hikers_total
                 FROM
                     hikers
                     `,[distance]
@@ -924,10 +936,15 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 SELECT
                     COUNT(*) FILTER (
                         WHERE h.distance = ANY($1)
+                        AND date(h.arrival) != '9999-12-31'
+                        AND date(h.departure) != '9999-12-31'
                     ) AS hikers_total,
                     COUNT(*) FILTER (
                         WHERE h.distance = ANY($1)
                         AND c.${station} IS NOT NULL
+                        AND date(h.arrival) != '9999-12-31'
+                        AND date(h.departure) != '9999-12-31'
+                        
                     ) AS hikers_arrived
                 FROM hikers h
                 LEFT JOIN checkpoints c ON h.barcode = c.barcode    
