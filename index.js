@@ -936,12 +936,12 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 SELECT
                     COUNT(*) FILTER (
                         WHERE h.distance = ANY($1)
-                        AND date(h.arrival) != '9999-12-31'
+                        AND (arrival IS NULL OR date(h.arrival) != '9999-12-31')
                         AND date(h.departure) != '9999-12-31'
                     ) AS hikers_total,
                     COUNT(*) FILTER (
                         WHERE h.distance = ANY($1)
-                        AND c.${station} IS NOT NULL
+                        AND( c.${station} IS NOT NULL OR h.arrival IS NOT NULL)
                         AND(arrival IS NULL OR date(h.arrival) != '9999-12-31')
                         AND date(h.departure) != '9999-12-31'
                         
@@ -949,6 +949,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 FROM hikers h
                 LEFT JOIN checkpoints c ON h.barcode = c.barcode    
             `;
+            //AND c.${station} IS NOT NULL ennek az üres SQL sorban van a helye
 
             const statsResult = await db.query(statsQuery, [validDistance]);
             
