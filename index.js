@@ -894,9 +894,14 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     hiker[station] = new Date("9999-12-31 00:00:00");
                 }
 
+                else if(hiker.departure && !checkpointTime && hiker.arrival){
+                    status = "Kihagyta"
+                }
+
                 else if(hiker.departure && !checkpointTime) {
                     status = "Várjuk";
                 }
+
                 else if(checkpointTime) {
                     //const time = new Date(checkpointTime).toLocaleDateString("hu-HU");
                     const time = new Date(checkpointTime);
