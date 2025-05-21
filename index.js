@@ -367,7 +367,7 @@ app.get("/hikers", isViewer, async (req, res) => {
                         AND date(departure) != '9999-12-31'
                         ) AS hikers_arrived
                     ,COUNT(*) FILTER(
-                        WHERE date(arrival) != '9999-12-31'
+                        WHERE (arrival IS NULL OR date(arrival) != '9999-12-31')
                         AND date(departure) != '9999-12-31'
                     ) AS hikers_total
                 FROM
@@ -768,7 +768,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                         AND date(departure) != '9999-12-31' AND date(arrival) != '9999-12-31') AS hikers_arrived
                     ,COUNT(*) FILTER (
                         WHERE distance = $1 
-                        AND date(departure) != '9999-12-31' AND date(arrival) != '9999-12-31') AS hikers_total
+                        AND date(departure) != '9999-12-31' AND (arrival IS NULL OR date(arrival) != '9999-12-31')) AS hikers_total
                 FROM
                     hikers
                     `,[distance]
@@ -942,7 +942,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     COUNT(*) FILTER (
                         WHERE h.distance = ANY($1)
                         AND c.${station} IS NOT NULL
-                        AND date(h.arrival) != '9999-12-31'
+                        AND(arrival IS NULL OR date(h.arrival) != '9999-12-31')
                         AND date(h.departure) != '9999-12-31'
                         
                     ) AS hikers_arrived
