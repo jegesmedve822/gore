@@ -901,7 +901,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 }
 
                 else if(hiker.departure && !checkpointTime) {
-                    status = "Beleszarok egy csízmába ha nem jó a kibaszott webhook";
+                    status = "Várjuk";
                     isDelayed = false;
                 }
 
