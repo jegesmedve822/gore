@@ -142,7 +142,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id, name, barcode, distance, phone, departure, arrival })
             });
-            console.log(body);
 
             if(response.status === 403) {
                 showMessage("Nincs jogosultságod az adatmódosításhoz!", "error");
@@ -159,6 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         } catch(error) {
             showMessage("Ismeretlen hiba történt.", "error");
+            console.log(error);
         }
     });
 

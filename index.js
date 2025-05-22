@@ -13,6 +13,7 @@ import fs from "fs";
 import { Parser } from "json2csv";
 import nodemailer from "nodemailer";
 import { stationColumns, referenceTimes } from "./middlewares/config/stationConfig.js";
+import { getAdapter } from "axios";
 
 
 
@@ -385,11 +386,22 @@ app.get("/hikers", isViewer, async (req, res) => {
                 const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
 
                 // ÚJ: Feladás ellenőrzés
-                const getTimePart = (date) => date?.toTimeString().split(" ")[0];
-                const isDroppedOut =
-                    (departureDate && getTimePart(departureDate) === "00:00:00") ||
-                    (arrivalDate && getTimePart(arrivalDate) === "00:00:00");
+                //const getDatePart = (date) => date?.toISOString().split("T")[0];
+                const getLocalDatePart = (date) => {
+                    if (!date) return null;
+                    const d = new Date(date);
+                    if (isNaN(d)) return null;
+                
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                };
+                
 
+                
+
+                const isDroppedOut =
+                    (departureDate && getLocalDatePart(departureDate) === "9999-12-31") ||
+                    (arrivalDate && getLocalDatePart(arrivalDate) === "9999-12-31");
+                
                 if (isDroppedOut) {
                     completionTime = "Feladta";
                 } else if (departureDate && !arrivalDate) {
@@ -423,6 +435,7 @@ app.get("/hikers", isViewer, async (req, res) => {
                 hikersArrived,
                 hikersTotal
             });
+            console.log(hikersWithCompletionTime);
 
         } catch (err) {
             res.status(500).json({ message: "Hiba az adatok betöltésekor.", status: "error" });
@@ -786,10 +799,17 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                 const arrivalDate = hiker.arrival ? new Date(hiker.arrival) : null;
     
                 //feladás ellenőrzése
-                const getTimePart = (date) => date?.toTimeString().split(" ")[0];
+                //const getDatePart = (date) => date?.toISOString().split("T")[0];
+                const getLocalDatePart = (date) => {
+                    if (!date) return null;
+                    const d = new Date(date);
+                    if (isNaN(d)) return null;
+                
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                };
                 const isDroppedOut =
-                    (departureDate && getTimePart(departureDate) === "00:00:00") ||
-                    (arrivalDate && getTimePart(arrivalDate) === "00:00:00");
+                    (departureDate && getLocalDatePart(departureDate) === "9999-12-31") ||
+                    (arrivalDate && getLocalDatePart(arrivalDate) === "9999-12-31");
                 
                 if(isDroppedOut) {
                     completionTime = "Feladta";
@@ -881,10 +901,17 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
 
             const response = result.rows.map(hiker => {
                 //const hasDeparted = hiker.departure && hiker.departure.toISOString().slice(0, 10) !== "9999-12-31";
-                const getTimePart = (date) => date?.toTimeString().split(" ")[0];
+                //const getTimePart = (date) => date?.toTimeString().split(" ")[0];
+                const getLocalDatePart = (date) => {
+                    if (!date) return null;
+                    const d = new Date(date);
+                    if (isNaN(d)) return null;
+                
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                };
                 const isDroppedOut =
-                    (hiker.departure && getTimePart(new Date(hiker.departure)) === "00:00:00") ||
-                    (hiker.arrival && getTimePart(new Date(hiker.arrival)) === "00:00:00");
+                    (hiker.departure && getLocalDatePart(new Date(hiker.departure)) === "9999-12-31") ||
+                    (hiker.arrival && getLocalDatePart(new Date(hiker.arrival)) === "9999-12-31");
                 const checkpointTime = hiker[station];
 
                 let status = "Nem indult el";
