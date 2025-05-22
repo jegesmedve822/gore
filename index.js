@@ -860,10 +860,12 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
             }
 
             const safeStation = `"${station}"`;
+            
 
             const query = `
                 SELECT
                     h.name
+                    ,h.distance
                     ,h.barcode
                     ,h.phone_number
                     ,h.departure
@@ -900,6 +902,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
 
                 else if(hiker.departure && !checkpointTime) {
                     status = "Várjuk";
+                    isDelayed = false;
                 }
 
                 else if(checkpointTime) {
@@ -911,18 +914,8 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     const seconds = time.getSeconds();
                     status = `${hours} óra ${minutes} perc ${seconds} mp`;
 
-                    const now = new Date();
-                    const minutesPassed = (now - time) / (1000*60);
-                    //const reference = referenceTimes?.[validDistance[0]]?.[`${station}->start`];
-                    const stationList = stationColumns[validDistance[0]];
-                    const currentIndex = stationList.indexOf(station);
-                    const previousStation = currentIndex > 0 ? stationList[currentIndex - 1] : "start";
-                    const pairKey = `${previousStation}->${station}`;
-                    const reference = referenceTimes?.[validDistance[0]]?.[pairKey];
-
-                    if (reference && minutesPassed > reference) {
-                        isDelayed = true;
-                    }
+                    isDelayed = false;
+                
                 }
 
 
