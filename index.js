@@ -990,7 +990,7 @@ app.post("/get-checkpoint-data", isViewer, async (req, res) => {
                     name: hiker.name,
                     barcode: hiker.barcode,
                     departure: hiker.departure,
-                    //arrival: hiker.arrival,
+                    phone_number: hiker.phone_number,
                     [station]: hiker[station],
                     completionTime: status,
                     isDelayed
