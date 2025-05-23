@@ -152,6 +152,10 @@ button:hover {
     color: red;
 }
 
+.warning {
+    color:#ff9a02
+}
+
 .delayed{
     color: rgb(193, 16, 16);
     font-weight: bold;

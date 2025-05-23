@@ -12,7 +12,7 @@ import os from "os";
 import fs from "fs";
 import { Parser } from "json2csv";
 import nodemailer from "nodemailer";
-import { stationColumns, referenceTimes } from "./middlewares/config/stationConfig.js";
+import { stationColumns, referenceTimes, levelTime } from "./middlewares/config/stationConfig.js";
 import { getAdapter } from "axios";
 
 
@@ -445,55 +445,95 @@ app.get("/hikers", isViewer, async (req, res) => {
     }
 });
 
-app.get("/api/oklevel", isViewer, async (req, res) => {
-    try {
+
+app.get("/api/oklevel", isViewer, async(req, res) => {
+    try{
+        const allStations = Array.from(new Set(Object.values(stationColumns).flat()));
+        const stationSelect = allStations.map(s => `c.${s}`).join(",");
+
         const query = await db.query(`
             SELECT
-                name
-                ,distance
-                ,departure
-                ,arrival
-            FROM hikers
-            WHERE arrival IS NOT NULL
-            ORDER BY arrival DESC`
-        );
+                h.name,
+                h.distance,
+                h.departure,
+                h.arrival,
+                ${stationSelect}
+            FROM
+                hikers h
+            LEFT JOIN
+                checkpoints c ON h.barcode = c.barcode
+            WHERE
+                h.arrival IS NOT NULL
+                AND date(h.arrival) != '9999-12-31'
+            ORDER BY
+                h.arrival DESC
 
-        const inTime = {
-            12: 5 * 60,
-            24: 7 * 60,
-            34: 10 * 60
-        };
+            `);
+        
+            //levelTime
 
-        const result = query.rows.map(row => {
-            const departure = new Date(row.departure);
-            const arrival = new Date(row.arrival);
+            const result = query.rows.map(row=> {
+                const departure = new Date(row.departure)
+                const arrival = new Date(row.arrival);
+                const distance = row.distance;
+                const requiredStations = stationColumns[distance] || [];
 
+                const getLocalDatePart = (date) => {
+                    if(!date) return null;
+                    const d = new Date(date);
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                };
 
-            const diffMs = arrival - departure;
-            const minutes = Math.floor(diffMs / (1000 * 60));
-            const hours = Math.floor(minutes / 60);
-            const remainingMinutes = minutes % 60;
-            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-            const completionTime = `${hours} óra ${remainingMinutes} perc ${seconds} mp`
+                const departureStr = getLocalDatePart(departure);
+                const arrivalStr = getLocalDatePart(arrival);
 
-            const maxMinutes = inTime[row.distance];
-            const success = minutes <= maxMinutes;
-            const isInTime = success ? "Szintidőn belül" : "Szintidőn kívül";
+                let status = "Szintidőn belül";
+                let colorClass = "success";
+                let completionTime = "";
 
-            return {
-                name: row.name,
-                distance: `${row.distance} km`,
-                completionTime,
-                isInTime,
-                success
-            };
-        });
+                //FELADTA
+                if(departureStr === "9999-12-31" || arrivalStr === "9999-12-31") {
+                    status = "Feladta";
+                    colorClass="error";
+                    completionTime = "Feladta";
+                } else {
+                    //SZINTIDŐ
+                    const diffMs = arrival - departure;
+                    const minutes = Math.floor(diffMs / (1000 * 60));
+                    const hours = Math.floor(minutes / 60);
+                    const remainingMinutes = minutes % 60;
+                    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                    completionTime = `${hours} ó ${remainingMinutes} p ${seconds} mp`;
 
-        res.json(result);
-    
-    } catch(err) {
+                    const maxMinutes = levelTime[distance] * 60;
+                    const isInTime = minutes <= maxMinutes;
+                    if(!isInTime) {
+                        status = "Szintidőn kívül"
+                        colorClass = "error";
+                    }
+
+                    //HIÁNYZÓ ÁLLOMÁSOK
+                    const missingStations = requiredStations.filter(st => !row[st]);
+                    if(missingStations.length > 0) {
+                        status += " - Hiányzó állomás(ok)";
+                        colorClass = "warning";
+                    }
+                }
+
+                return {
+                    name: row.name,
+                    distance: `${distance} km`,
+                    isInTime: status,
+                    completionTime,
+                    className: colorClass
+                };
+            });
+
+            res.json(result);
+    } catch(err){
         console.error("Hiba az oklevél lekérdezésénél:", err);
-    }   
+        res.status(500).json({ error: "Belső hiba" });
+    }
 });
 
 
